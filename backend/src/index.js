@@ -14,6 +14,7 @@ const transfersRouter = require('./routes/transfers')
 const ticketsRouter = require('./routes/tickets')
 const adminBannersRouter = require('./routes/admin/banners')
 const adminAuth = require('./middleware/adminAuth')
+const notifyRouter = require('./routes/notify')
 const bot = require('./bot/index')
 
 const app = express()
@@ -34,6 +35,8 @@ app.use('/api/newid', telegramAuth, newidRouter)
 app.use('/api/transfers', telegramAuth, transfersRouter)
 app.use('/api/tickets', telegramAuth, ticketsRouter)
 app.use('/api/admin/banners', telegramAuth, adminAuth, adminBannersRouter)
+app.use('/api/notify', telegramAuth, notifyRouter)
+
 
 app.get('/health', (req, res) => res.json({ ok: true }))
 
