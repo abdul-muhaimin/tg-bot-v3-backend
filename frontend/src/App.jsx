@@ -5,42 +5,17 @@ import ErrorScreen from "./components/ErrorScreen";
 import TncScreen from "./components/TncScreen";
 import BottomNav from "./components/BottomNav";
 import Home from "./pages/Home";
-
-const Requests = () => (
-  <div className="page page-enter">
-    <p className="t-title" style={{ padding: "16px 0" }}>
-      My Requests
-    </p>
-  </div>
-);
-const Settings = () => (
-  <div className="page page-enter">
-    <p className="t-title" style={{ padding: "16px 0" }}>
-      Settings
-    </p>
-  </div>
-);
-const AdminDashboard = () => (
-  <div className="page page-enter">
-    <p className="t-title" style={{ padding: "16px 0" }}>
-      Admin Dashboard
-    </p>
-  </div>
-);
-const AdminRequests = () => (
-  <div className="page page-enter">
-    <p className="t-title" style={{ padding: "16px 0" }}>
-      Admin Requests
-    </p>
-  </div>
-);
-const AdminUsers = () => (
-  <div className="page page-enter">
-    <p className="t-title" style={{ padding: "16px 0" }}>
-      Admin Users
-    </p>
-  </div>
-);
+import Deposit from "./pages/Deposit";
+import Withdraw from "./pages/Withdraw";
+import Recovery from "./pages/Recovery";
+import NewId from "./pages/NewId";
+import Transfer from "./pages/Transfer";
+import Support from "./pages/Support";
+import Requests from "./pages/Requests";
+import Settings from "./pages/Settings";
+import AdminDashboard from "./pages/admin/Dashboard";
+import AdminRequests from "./pages/admin/Requests";
+import AdminUsers from "./pages/admin/Users";
 
 function AppInner() {
   const { loading, error, user, systemOpen } = useApp();
@@ -60,6 +35,15 @@ function AppInner() {
         <Route path="/" element={<Home />} />
         <Route path="/requests" element={<Requests />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin/requests" element={<AdminRequests />} />
+        <Route path="/admin/users" element={<AdminUsers />} />
+        <Route path="/deposit" element={<Deposit />} />
+        <Route path="/withdraw" element={<Withdraw />} />
+        <Route path="/recovery" element={<Recovery />} />
+        <Route path="/newid" element={<NewId />} />
+        <Route path="/transfer" element={<Transfer />} />
+        <Route path="/support" element={<Support />} />
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/admin/requests" element={<AdminRequests />} />
         <Route path="/admin/users" element={<AdminUsers />} />

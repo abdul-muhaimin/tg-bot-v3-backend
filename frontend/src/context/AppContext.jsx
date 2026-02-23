@@ -9,6 +9,20 @@ export function AppProvider({ children }) {
   const [config, setConfig] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [adminPending, setAdminPending] = useState(0);
+  useEffect(() => {
+    if (!user || !['admin', 'superadmin'].includes(user.role)) return;
+
+    function fetchPending() {
+      api.get('/admin/dashboard/pending')
+        .then(r => setAdminPending(r.data.total || 0))
+        .catch(() => {});
+    }
+
+    fetchPending();
+    const interval = setInterval(fetchPending, 30000);
+    return () => clearInterval(interval);
+  }, [user?.role]);
 
   useEffect(() => {
     initTelegram();
@@ -74,6 +88,7 @@ export function AppProvider({ children }) {
         isSuperAdmin,
         systemOpen,
         featureEnabled,
+        adminPending,
       }}
     >
       {children}
