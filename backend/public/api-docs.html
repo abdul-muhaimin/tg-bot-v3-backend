@@ -1,0 +1,2696 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>API Reference — Bot Backend</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Salesforce+Sans:wght@400;700&family=Source+Code+Pro:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --sf-blue: #0176d3;
+        --sf-blue-dark: #014486;
+        --sf-blue-light: #1b96ff;
+        --sf-sky: #032d60;
+        --sf-cloud: #f3f3f3;
+        --sf-white: #ffffff;
+        --sf-ink: #181818;
+        --sf-ink-mid: #444444;
+        --sf-ink-light: #706e6b;
+        --sf-border: #dddbda;
+        --sf-success: #2e844a;
+        --sf-warning: #dd7a01;
+        --sf-error: #ba0517;
+        --sf-purple: #7526e3;
+        --sf-teal: #06a59a;
+        --get-bg: #e8f4fd;
+        --get-color: #0176d3;
+        --post-bg: #e6f5ea;
+        --post-color: #2e844a;
+        --patch-bg: #fdf3e3;
+        --patch-color: #dd7a01;
+        --delete-bg: #fce9ea;
+        --delete-color: #ba0517;
+        --sidebar-w: 280px;
+        --header-h: 56px;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family:
+          "Salesforce Sans",
+          -apple-system,
+          BlinkMacSystemFont,
+          sans-serif;
+        background: var(--sf-cloud);
+        color: var(--sf-ink);
+        font-size: 14px;
+        line-height: 1.6;
+      }
+
+      /* ── TOP NAV ── */
+      .topnav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 100;
+        height: var(--header-h);
+        background: var(--sf-sky);
+        display: flex;
+        align-items: center;
+        padding: 0 24px;
+        gap: 16px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+      }
+      .topnav-logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: #fff;
+        font-weight: 700;
+        font-size: 15px;
+        letter-spacing: -0.2px;
+      }
+      .topnav-logo svg {
+        width: 28px;
+        height: 28px;
+      }
+      .topnav-badge {
+        background: var(--sf-blue-light);
+        color: #fff;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 12px;
+        letter-spacing: 0.5px;
+      }
+      .topnav-right {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .topnav-version {
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 12px;
+      }
+      .topnav-status {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: #3dcc73;
+        font-size: 12px;
+        font-weight: 600;
+      }
+      .topnav-status::before {
+        content: "";
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #3dcc73;
+        box-shadow: 0 0 0 2px rgba(61, 204, 115, 0.3);
+        animation: pulse 2s infinite;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          box-shadow: 0 0 0 2px rgba(61, 204, 115, 0.3);
+        }
+        50% {
+          box-shadow: 0 0 0 5px rgba(61, 204, 115, 0.1);
+        }
+      }
+
+      /* ── LAYOUT ── */
+      .layout {
+        display: flex;
+        margin-top: var(--header-h);
+        min-height: calc(100vh - var(--header-h));
+      }
+
+      /* ── SIDEBAR ── */
+      .sidebar {
+        width: var(--sidebar-w);
+        min-width: var(--sidebar-w);
+        background: var(--sf-white);
+        border-right: 1px solid var(--sf-border);
+        position: fixed;
+        top: var(--header-h);
+        bottom: 0;
+        left: 0;
+        overflow-y: auto;
+        padding: 16px 0;
+      }
+      .sidebar::-webkit-scrollbar {
+        width: 4px;
+      }
+      .sidebar::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .sidebar::-webkit-scrollbar-thumb {
+        background: var(--sf-border);
+        border-radius: 2px;
+      }
+
+      .sidebar-search {
+        margin: 0 12px 12px;
+        position: relative;
+      }
+      .sidebar-search input {
+        width: 100%;
+        padding: 7px 10px 7px 32px;
+        border: 1px solid var(--sf-border);
+        border-radius: 4px;
+        font-size: 13px;
+        color: var(--sf-ink);
+        background: var(--sf-cloud);
+        outline: none;
+        font-family: inherit;
+      }
+      .sidebar-search input:focus {
+        border-color: var(--sf-blue);
+        background: #fff;
+      }
+      .sidebar-search svg {
+        position: absolute;
+        left: 9px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--sf-ink-light);
+        width: 14px;
+        height: 14px;
+      }
+
+      .sidebar-section {
+        margin-bottom: 4px;
+      }
+      .sidebar-section-label {
+        padding: 10px 16px 4px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+        color: var(--sf-ink-light);
+        text-transform: uppercase;
+      }
+      .sidebar-link {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 7px 16px;
+        cursor: pointer;
+        color: var(--sf-ink-mid);
+        font-size: 13px;
+        text-decoration: none;
+        border-left: 3px solid transparent;
+        transition: all 0.15s;
+      }
+      .sidebar-link:hover {
+        background: var(--sf-cloud);
+        color: var(--sf-blue);
+      }
+      .sidebar-link.active {
+        background: #e8f4fd;
+        color: var(--sf-blue);
+        border-left-color: var(--sf-blue);
+        font-weight: 600;
+      }
+      .sidebar-count {
+        background: var(--sf-cloud);
+        color: var(--sf-ink-light);
+        font-size: 11px;
+        padding: 1px 6px;
+        border-radius: 10px;
+        font-weight: 600;
+      }
+      .sidebar-link.active .sidebar-count {
+        background: var(--sf-blue);
+        color: #fff;
+      }
+
+      /* ── MAIN ── */
+      .main {
+        margin-left: var(--sidebar-w);
+        flex: 1;
+        padding: 32px 40px;
+        max-width: 960px;
+      }
+
+      /* ── SECTION HEADER ── */
+      .section-header {
+        background: var(--sf-white);
+        border: 1px solid var(--sf-border);
+        border-radius: 8px 8px 0 0;
+        padding: 20px 24px 16px;
+        border-bottom: 3px solid var(--sf-blue);
+        margin-bottom: 0;
+      }
+      .section-header h2 {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--sf-sky);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .section-header h2 svg {
+        color: var(--sf-blue);
+      }
+      .section-header p {
+        color: var(--sf-ink-light);
+        margin-top: 4px;
+        font-size: 13px;
+      }
+      .section-tag {
+        font-size: 11px;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+      }
+      .tag-public {
+        background: #e6f5ea;
+        color: var(--sf-success);
+      }
+      .tag-auth {
+        background: #e8f4fd;
+        color: var(--sf-blue);
+      }
+      .tag-admin {
+        background: #f3e9fc;
+        color: var(--sf-purple);
+      }
+
+      /* ── ENDPOINT CARD ── */
+      .endpoint-group {
+        background: var(--sf-white);
+        border: 1px solid var(--sf-border);
+        border-top: none;
+        border-radius: 0 0 8px 8px;
+        margin-bottom: 32px;
+        overflow: hidden;
+      }
+      .endpoint {
+        border-top: 1px solid var(--sf-border);
+        overflow: hidden;
+      }
+      .endpoint:first-child {
+        border-top: none;
+      }
+
+      .endpoint-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 24px;
+        cursor: pointer;
+        transition: background 0.15s;
+        user-select: none;
+      }
+      .endpoint-header:hover {
+        background: #f8f9fa;
+      }
+      .endpoint-header.open {
+        background: #f8f9fa;
+      }
+
+      .method {
+        font-size: 11px;
+        font-weight: 700;
+        padding: 3px 8px;
+        border-radius: 4px;
+        letter-spacing: 0.5px;
+        min-width: 52px;
+        text-align: center;
+        font-family: "Source Code Pro", monospace;
+      }
+      .method-GET {
+        background: var(--get-bg);
+        color: var(--get-color);
+      }
+      .method-POST {
+        background: var(--post-bg);
+        color: var(--post-color);
+      }
+      .method-PATCH {
+        background: var(--patch-bg);
+        color: var(--patch-color);
+      }
+      .method-DELETE {
+        background: var(--delete-bg);
+        color: var(--delete-color);
+      }
+
+      .endpoint-path {
+        font-family: "Source Code Pro", monospace;
+        font-size: 13px;
+        color: var(--sf-ink);
+        font-weight: 600;
+        flex: 1;
+      }
+      .endpoint-path span {
+        color: var(--sf-blue);
+      }
+      .endpoint-desc {
+        font-size: 12px;
+        color: var(--sf-ink-light);
+        margin-left: auto;
+      }
+      .endpoint-chevron {
+        color: var(--sf-ink-light);
+        transition: transform 0.2s;
+        width: 16px;
+        height: 16px;
+      }
+      .endpoint-header.open .endpoint-chevron {
+        transform: rotate(180deg);
+      }
+
+      .endpoint-body {
+        display: none;
+        padding: 0 24px 20px;
+        border-top: 1px solid var(--sf-cloud);
+        animation: fadeIn 0.15s ease;
+      }
+      .endpoint-body.open {
+        display: block;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(-4px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+
+      /* ── PARAMS / BODY TABLE ── */
+      .param-section {
+        margin-top: 16px;
+      }
+      .param-section-title {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.6px;
+        text-transform: uppercase;
+        color: var(--sf-ink-light);
+        margin-bottom: 8px;
+        padding-bottom: 6px;
+        border-bottom: 1px solid var(--sf-cloud);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th {
+        text-align: left;
+        padding: 8px 12px;
+        background: var(--sf-cloud);
+        color: var(--sf-ink-light);
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      th:first-child {
+        border-radius: 4px 0 0 4px;
+      }
+      th:last-child {
+        border-radius: 0 4px 4px 0;
+      }
+      td {
+        padding: 8px 12px;
+        font-size: 13px;
+        border-bottom: 1px solid var(--sf-cloud);
+        vertical-align: top;
+      }
+      tr:last-child td {
+        border-bottom: none;
+      }
+      .param-name {
+        font-family: "Source Code Pro", monospace;
+        font-size: 12px;
+        color: var(--sf-sky);
+        font-weight: 600;
+      }
+      .param-type {
+        font-family: "Source Code Pro", monospace;
+        font-size: 11px;
+        color: var(--sf-purple);
+        background: #f3e9fc;
+        padding: 2px 6px;
+        border-radius: 3px;
+      }
+      .param-required {
+        font-size: 10px;
+        color: var(--sf-error);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+      }
+      .param-optional {
+        font-size: 10px;
+        color: var(--sf-ink-light);
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+      }
+      .param-desc {
+        color: var(--sf-ink-mid);
+      }
+
+      /* ── CODE BLOCK ── */
+      .code-block {
+        background: var(--sf-sky);
+        color: #c9d1d9;
+        border-radius: 6px;
+        padding: 14px 16px;
+        font-family: "Source Code Pro", monospace;
+        font-size: 12px;
+        line-height: 1.7;
+        margin-top: 12px;
+        overflow-x: auto;
+        position: relative;
+      }
+      .code-block .key {
+        color: #79c0ff;
+      }
+      .code-block .str {
+        color: #a5d6ff;
+      }
+      .code-block .num {
+        color: #f8c555;
+      }
+      .code-block .bool {
+        color: #ff7b72;
+      }
+      .code-block .null {
+        color: #ff7b72;
+      }
+      .code-block .comment {
+        color: #8b949e;
+        font-style: italic;
+      }
+      .copy-btn {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 11px;
+        padding: 3px 8px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-family: inherit;
+        transition: all 0.15s;
+      }
+      .copy-btn:hover {
+        background: rgba(255, 255, 255, 0.2);
+        color: #fff;
+      }
+      .copy-btn.copied {
+        color: #3dcc73;
+        border-color: #3dcc73;
+      }
+
+      /* ── NOTICE BOXES ── */
+      .notice {
+        border-radius: 6px;
+        padding: 10px 14px;
+        font-size: 13px;
+        margin-top: 12px;
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+      }
+      .notice-info {
+        background: #e8f4fd;
+        color: var(--sf-blue-dark);
+        border-left: 3px solid var(--sf-blue);
+      }
+      .notice-warning {
+        background: #fdf3e3;
+        color: #7d4200;
+        border-left: 3px solid var(--sf-warning);
+      }
+      .notice-error {
+        background: #fce9ea;
+        color: #700015;
+        border-left: 3px solid var(--sf-error);
+      }
+      .notice-success {
+        background: #e6f5ea;
+        color: #1a4f2b;
+        border-left: 3px solid var(--sf-success);
+      }
+
+      /* ── RESPONSE CODES ── */
+      .response-codes {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 12px;
+      }
+      .response-code {
+        font-size: 12px;
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-family: "Source Code Pro", monospace;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .rc-200 {
+        background: var(--post-bg);
+        color: var(--post-color);
+      }
+      .rc-201 {
+        background: var(--post-bg);
+        color: var(--post-color);
+      }
+      .rc-400 {
+        background: var(--patch-bg);
+        color: var(--patch-color);
+      }
+      .rc-401 {
+        background: var(--delete-bg);
+        color: var(--delete-color);
+      }
+      .rc-403 {
+        background: var(--delete-bg);
+        color: var(--delete-color);
+      }
+      .rc-404 {
+        background: var(--delete-bg);
+        color: var(--delete-color);
+      }
+      .rc-409 {
+        background: var(--patch-bg);
+        color: var(--patch-color);
+      }
+      .rc-500 {
+        background: #f3e9fc;
+        color: var(--sf-purple);
+      }
+
+      /* ── PAGE SECTIONS ── */
+      .page-section {
+        display: none;
+      }
+      .page-section.active {
+        display: block;
+      }
+
+      /* ── OVERVIEW ── */
+      .overview-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-top: 0;
+        background: var(--sf-white);
+        border: 1px solid var(--sf-border);
+        border-top: none;
+        border-radius: 0 0 8px 8px;
+        padding: 24px;
+        margin-bottom: 32px;
+      }
+      .overview-card {
+        background: var(--sf-cloud);
+        border-radius: 8px;
+        padding: 16px;
+        border: 1px solid var(--sf-border);
+      }
+      .overview-card h3 {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--sf-sky);
+        margin-bottom: 8px;
+      }
+      .overview-card p,
+      .overview-card li {
+        font-size: 13px;
+        color: var(--sf-ink-mid);
+        line-height: 1.7;
+      }
+      .overview-card ul {
+        padding-left: 18px;
+      }
+      .base-url {
+        font-family: "Source Code Pro", monospace;
+        background: var(--sf-sky);
+        color: #79c0ff;
+        padding: 10px 14px;
+        border-radius: 6px;
+        font-size: 13px;
+        margin-top: 8px;
+        display: block;
+      }
+      .auth-header-example {
+        font-family: "Source Code Pro", monospace;
+        font-size: 12px;
+        background: #f3e9fc;
+        color: var(--sf-purple);
+        padding: 8px 12px;
+        border-radius: 4px;
+        margin-top: 8px;
+        display: block;
+      }
+
+      /* ── SCROLLBAR MAIN ── */
+      .main::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      /* ── SECTION DIVIDER ── */
+      .section-spacer {
+        height: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- TOP NAV -->
+    <nav class="topnav">
+      <div class="topnav-logo">
+        <svg viewBox="0 0 28 28" fill="none">
+          <rect width="28" height="28" rx="6" fill="#1b96ff" />
+          <path
+            d="M7 14h14M14 7v14"
+            stroke="white"
+            stroke-width="2.5"
+            stroke-linecap="round"
+          />
+        </svg>
+        Bot Backend
+        <span class="topnav-badge">API</span>
+      </div>
+      <span class="topnav-right">
+        <span class="topnav-version">v1.0.0</span>
+        <span class="topnav-status">Server Live</span>
+      </span>
+    </nav>
+
+    <div class="layout">
+      <!-- SIDEBAR -->
+      <aside class="sidebar">
+        <div class="sidebar-search">
+          <svg
+            viewBox="0 0 16 16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <circle cx="6.5" cy="6.5" r="4.5" />
+            <path d="m10.5 10.5 3 3" />
+          </svg>
+          <input
+            type="text"
+            id="sidebarSearch"
+            placeholder="Search endpoints..."
+            oninput="filterSidebar(this.value)"
+          />
+        </div>
+
+        <div class="sidebar-section">
+          <div class="sidebar-section-label">Getting Started</div>
+          <a class="sidebar-link active" onclick="showSection('overview')"
+            >📋 Overview</a
+          >
+          <a class="sidebar-link" onclick="showSection('auth')"
+            >🔐 Authentication</a
+          >
+          <a class="sidebar-link" onclick="showSection('errors')"
+            >⚠️ Error Handling</a
+          >
+        </div>
+
+        <div class="sidebar-section">
+          <div class="sidebar-section-label">Public</div>
+          <a class="sidebar-link" onclick="showSection('config')"
+            >⚙️ Config <span class="sidebar-count">1</span></a
+          >
+        </div>
+
+        <div class="sidebar-section">
+          <div class="sidebar-section-label">User</div>
+          <a class="sidebar-link" onclick="showSection('users')"
+            >👤 Users <span class="sidebar-count">5</span></a
+          >
+          <a class="sidebar-link" onclick="showSection('deposits')"
+            >💰 Deposits <span class="sidebar-count">3</span></a
+          >
+          <a class="sidebar-link" onclick="showSection('withdrawals')"
+            >💸 Withdrawals <span class="sidebar-count">3</span></a
+          >
+          <a class="sidebar-link" onclick="showSection('recoveries')"
+            >🔄 Recoveries <span class="sidebar-count">3</span></a
+          >
+          <a class="sidebar-link" onclick="showSection('newid')"
+            >🆕 New ID <span class="sidebar-count">2</span></a
+          >
+          <a class="sidebar-link" onclick="showSection('transfers')"
+            >🔀 Chip Transfers <span class="sidebar-count">2</span></a
+          >
+          <a class="sidebar-link" onclick="showSection('tickets')"
+            >🎫 Support Tickets <span class="sidebar-count">2</span></a
+          >
+        </div>
+
+        <div class="sidebar-section">
+          <div class="sidebar-section-label">Admin</div>
+          <a class="sidebar-link" onclick="showSection('admin-dashboard')"
+            >📊 Dashboard <span class="sidebar-count">1</span></a
+          >
+          <a class="sidebar-link" onclick="showSection('admin-sessions')"
+            >🗓️ Sessions <span class="sidebar-count">4</span></a
+          >
+          <a class="sidebar-link" onclick="showSection('admin-requests')"
+            >📥 Requests <span class="sidebar-count">10</span></a
+          >
+          <a class="sidebar-link" onclick="showSection('admin-users')"
+            >👥 User Mgmt <span class="sidebar-count">7</span></a
+          >
+          <a class="sidebar-link" onclick="showSection('admin-banners')"
+            >🖼️ Banners <span class="sidebar-count">4</span></a
+          >
+        </div>
+              <!-- ══ ADMIN BANNERS ════════════════════════════════════════ -->
+              <div id="section-admin-banners" class="page-section">
+                <div class="section-header">
+                  <h2>
+                    🖼️ Admin Banners
+                    <span class="section-tag tag-admin">ADMIN ONLY</span>
+                  </h2>
+                  <p>Manage homepage banners. Supports image upload, link, sort order, and activation.</p>
+                </div>
+                <div class="endpoint-group">
+                  <div class="endpoint">
+                    <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                      <span class="method method-GET">GET</span>
+                      <span class="endpoint-path">/admin/banners</span>
+                      <span class="endpoint-desc">List all banners</span>
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6l4 4 4-4"/></svg>
+                    </div>
+                    <div class="endpoint-body">
+                      <div class="notice notice-info">Returns array of banner objects.</div>
+                    </div>
+                  </div>
+                  <div class="endpoint">
+                    <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                      <span class="method method-POST">POST</span>
+                      <span class="endpoint-path">/admin/banners</span>
+                      <span class="endpoint-desc">Create banner (multipart)</span>
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6l4 4 4-4"/></svg>
+                    </div>
+                    <div class="endpoint-body">
+                      <div class="notice notice-info">Image file required. Optional: linkUrl, sortOrder.</div>
+                      <div class="param-section">
+                        <div class="param-section-title">Form Data</div>
+                        <table>
+                          <tr><th>Name</th><th>Type</th><th>Required</th><th>Description</th></tr>
+                          <tr><td class="param-name">image</td><td class="param-type">file</td><td class="param-required">required</td><td class="param-desc">Banner image file</td></tr>
+                          <tr><td class="param-name">linkUrl</td><td class="param-type">string</td><td class="param-optional">optional</td><td class="param-desc">URL to open on click</td></tr>
+                          <tr><td class="param-name">sortOrder</td><td class="param-type">number</td><td class="param-optional">optional</td><td class="param-desc">Display order</td></tr>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="endpoint">
+                    <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                      <span class="method method-PATCH">PATCH</span>
+                      <span class="endpoint-path">/admin/banners/:id</span>
+                      <span class="endpoint-desc">Update banner</span>
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6l4 4 4-4"/></svg>
+                    </div>
+                    <div class="endpoint-body">
+                      <div class="notice notice-info">Update image, linkUrl, isActive, sortOrder.</div>
+                      <div class="param-section">
+                        <div class="param-section-title">Form Data / JSON</div>
+                        <table>
+                          <tr><th>Name</th><th>Type</th><th>Required</th><th>Description</th></tr>
+                          <tr><td class="param-name">image</td><td class="param-type">file</td><td class="param-optional">optional</td><td class="param-desc">New banner image file</td></tr>
+                          <tr><td class="param-name">linkUrl</td><td class="param-type">string</td><td class="param-optional">optional</td><td class="param-desc">URL to open on click</td></tr>
+                          <tr><td class="param-name">isActive</td><td class="param-type">boolean</td><td class="param-optional">optional</td><td class="param-desc">Banner active status</td></tr>
+                          <tr><td class="param-name">sortOrder</td><td class="param-type">number</td><td class="param-optional">optional</td><td class="param-desc">Display order</td></tr>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="endpoint">
+                    <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                      <span class="method method-DELETE">DELETE</span>
+                      <span class="endpoint-path">/admin/banners/:id</span>
+                      <span class="endpoint-desc">Delete banner</span>
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6l4 4 4-4"/></svg>
+                    </div>
+                    <div class="endpoint-body">
+                      <div class="notice notice-warning">Deletes banner by ID.</div>
+                    </div>
+                  </div>
+                </div>
+              </div
+      </aside>
+
+      <!-- MAIN CONTENT -->
+      <main class="main">
+        <!-- ══ OVERVIEW ══════════════════════════════════════════════ -->
+        <div id="section-overview" class="page-section active">
+          <div class="section-header">
+            <h2>
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.396 0 2.695.36 3.8 1h-.3zm1 8.396A7.967 7.967 0 0114.5 12c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 2c-1.396 0-2.695.36-3.8 1H10V14.8l.001-.604z"
+                />
+              </svg>
+              API Overview
+            </h2>
+            <p>
+              Complete reference for the Telegram Bot & Mini App backend API
+            </p>
+          </div>
+          <div class="overview-grid">
+            <div class="overview-card">
+              <h3>🌐 Base URL</h3>
+              <p>
+                All endpoints are relative to the base URL. Use your Railway URL
+                in production.
+              </p>
+              <code class="base-url">http://localhost:3000/api</code>
+            </div>
+            <div class="overview-card">
+              <h3>🔐 Auth Header</h3>
+              <p>All protected routes require the Telegram initData header:</p>
+              <code class="auth-header-example"
+                >x-init-data: query_id=...&user=...&hash=...</code
+              >
+            </div>
+            <div class="overview-card">
+              <h3>📦 Request Format</h3>
+              <ul>
+                <li>Content-Type: <code>application/json</code></li>
+                <li>File uploads: <code>multipart/form-data</code></li>
+                <li>All amounts are numbers (Float)</li>
+                <li>telegramId is returned as String</li>
+              </ul>
+            </div>
+            <div class="overview-card">
+              <h3>🏷️ Route Access Levels</h3>
+              <ul>
+                <li>
+                  <span class="section-tag tag-public">PUBLIC</span> — No auth
+                  needed
+                </li>
+                <li>
+                  <span class="section-tag tag-auth">USER AUTH</span> — Telegram
+                  initData required
+                </li>
+                <li>
+                  <span class="section-tag tag-admin">ADMIN ONLY</span> — role:
+                  admin or superadmin
+                </li>
+              </ul>
+            </div>
+            <div class="overview-card" style="grid-column: 1/-1">
+              <h3>💡 Key Business Rules</h3>
+              <ul>
+                <li>
+                  System must have an active Session for any request to be
+                  submitted
+                </li>
+                <li>
+                  Each feature can be toggled independently via Config
+                  (deposit_enabled, withdrawal_enabled, etc.)
+                </li>
+                <li>
+                  Withdrawal/Recovery eligibility: user must be
+                  <strong>lastInteractedUser</strong> on the Game ID AND have an
+                  approved deposit in the current session
+                </li>
+                <li>
+                  New ID approval automatically creates a GameId record and
+                  links it to the requesting user
+                </li>
+                <li>
+                  All approve/reject actions increment session and user summary
+                  counters atomically
+                </li>
+                <li>
+                  OCR is disabled for now — all deposit slips go straight to
+                  pending with ocrStatus: skipped
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ AUTH ══════════════════════════════════════════════════ -->
+        <div id="section-auth" class="page-section">
+          <div class="section-header">
+            <h2>🔐 Authentication</h2>
+            <p>How the Telegram Mini App authenticates with the backend</p>
+          </div>
+          <div class="overview-grid">
+            <div class="overview-card" style="grid-column: 1/-1">
+              <h3>How It Works</h3>
+              <p>
+                When the Mini App opens,
+                <code>window.Telegram.WebApp.initData</code> contains a signed
+                string from Telegram. Send this in every protected request as
+                the <code>x-init-data</code> header. The backend validates the
+                HMAC-SHA256 signature using the BOT_TOKEN.
+              </p>
+              <div class="code-block">
+                <span class="comment">// Frontend — send on every API call</span
+                ><br />
+                <span class="key">const</span> headers = {<br />
+                &nbsp;&nbsp;<span class="str">'Content-Type'</span>:
+                <span class="str">'application/json'</span>,<br />
+                &nbsp;&nbsp;<span class="str">'x-init-data'</span>:
+                window.Telegram.WebApp.initData<br />
+                }
+              </div>
+            </div>
+            <div class="overview-card">
+              <h3>User Registration</h3>
+              <p>
+                Users are NOT auto-created on auth. The bot handles user
+                creation via the <code>/start</code> command. The mini app must
+                call <code>POST /users/me</code> on load to upsert the user
+                record and get their profile back.
+              </p>
+            </div>
+            <div class="overview-card">
+              <h3>Error Responses</h3>
+              <ul>
+                <li><code>401</code> — Missing or invalid initData</li>
+                <li><code>401</code> — User not found (start the bot first)</li>
+                <li><code>403</code> — User is banned</li>
+                <li><code>403</code> — Admin access required (admin routes)</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ ERRORS ═════════════════════════════════════════════════ -->
+        <div id="section-errors" class="page-section">
+          <div class="section-header">
+            <h2>⚠️ Error Handling</h2>
+            <p>
+              Standard error response format and error codes used across the API
+            </p>
+          </div>
+          <div class="overview-grid">
+            <div class="overview-card" style="grid-column: 1/-1">
+              <h3>Error Response Format</h3>
+              <div class="code-block">
+                { <span class="key">"error"</span>:
+                <span class="str">"error_code_or_message"</span> }
+              </div>
+            </div>
+            <div class="overview-card" style="grid-column: 1/-1">
+              <h3>Business Logic Error Codes</h3>
+              <table>
+                <tr>
+                  <th>Code</th>
+                  <th>HTTP</th>
+                  <th>Description</th>
+                </tr>
+                <tr>
+                  <td class="param-name">system_closed</td>
+                  <td>403</td>
+                  <td class="param-desc">
+                    System is closed — no active session
+                  </td>
+                </tr>
+                <tr>
+                  <td class="param-name">feature_disabled</td>
+                  <td>403</td>
+                  <td class="param-desc">Feature toggled off in config</td>
+                </tr>
+                <tr>
+                  <td class="param-name">not_eligible</td>
+                  <td>403</td>
+                  <td class="param-desc">
+                    No approved deposit in current session
+                  </td>
+                </tr>
+                <tr>
+                  <td class="param-name">gameid_not_eligible</td>
+                  <td>403</td>
+                  <td class="param-desc">
+                    User is not the lastInteractedUser on Game ID
+                  </td>
+                </tr>
+                <tr>
+                  <td class="param-name">invalid_gameid</td>
+                  <td>404</td>
+                  <td class="param-desc">Game ID does not exist</td>
+                </tr>
+                <tr>
+                  <td class="param-name">banned</td>
+                  <td>403</td>
+                  <td class="param-desc">User account is banned</td>
+                </tr>
+                <tr>
+                  <td class="param-name">Already actioned</td>
+                  <td>400</td>
+                  <td class="param-desc">
+                    Request already approved or rejected
+                  </td>
+                </tr>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ CONFIG ════════════════════════════════════════════════ -->
+        <div id="section-config" class="page-section">
+          <div class="section-header">
+            <h2>
+              ⚙️ Config <span class="section-tag tag-public">PUBLIC</span>
+            </h2>
+            <p>
+              Fetched on app startup. Controls system status, feature toggles,
+              limits, currencies.
+            </p>
+          </div>
+          <div class="endpoint-group">
+            <div class="endpoint">
+              <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                <span class="method method-GET">GET</span>
+                <span class="endpoint-path">/config</span>
+                <span class="endpoint-desc">Get all config as flat object</span>
+                <svg
+                  class="endpoint-chevron"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="m4 6 4 4 4-4" />
+                </svg>
+              </div>
+              <div class="endpoint-body">
+                <div class="notice notice-info">
+                  💡 Call this on app load and cache the result. No auth
+                  required.
+                </div>
+                <div class="param-section">
+                  <div class="param-section-title">Response 200</div>
+                  <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">
+                      Copy
+                    </button>
+                    {<br />
+                    &nbsp;&nbsp;<span class="key">"system_status"</span>:
+                    <span class="str">"open"</span>,<br />
+                    &nbsp;&nbsp;<span class="key">"deposit_enabled"</span>:
+                    <span class="str">"true"</span>,<br />
+                    &nbsp;&nbsp;<span class="key">"withdrawal_enabled"</span>:
+                    <span class="str">"true"</span>,<br />
+                    &nbsp;&nbsp;<span class="key">"recovery_enabled"</span>:
+                    <span class="str">"true"</span>,<br />
+                    &nbsp;&nbsp;<span class="key">"newid_enabled"</span>:
+                    <span class="str">"true"</span>,<br />
+                    &nbsp;&nbsp;<span class="key">"chiptransfer_enabled"</span>:
+                    <span class="str">"true"</span>,<br />
+                    &nbsp;&nbsp;<span class="key">"support_enabled"</span>:
+                    <span class="str">"true"</span>,<br />
+                    &nbsp;&nbsp;<span class="key">"deposit_min"</span>:
+                    <span class="str">"10"</span>,<br />
+                    &nbsp;&nbsp;<span class="key">"deposit_max"</span>:
+                    <span class="str">"50000"</span>,<br />
+                    &nbsp;&nbsp;<span class="key">"withdrawal_min"</span>:
+                    <span class="str">"20"</span>,<br />
+                    &nbsp;&nbsp;<span class="key">"accepted_currencies"</span>:
+                    <span class="str">"[\"MRF\",\"USD\",\"USDT\"]"</span>,<br />
+                    &nbsp;&nbsp;<span class="key">"app_name"</span>:
+                    <span class="str">"MyApp"</span><br />
+                    }
+                  </div>
+                </div>
+                <div class="notice notice-warning">
+                  ⚠️ All values are strings. Parse booleans with
+                  <code>value === 'true'</code> and numbers with
+                  <code>parseFloat(value)</code>.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ USERS ═════════════════════════════════════════════════ -->
+        <div id="section-users" class="page-section">
+          <div class="section-header">
+            <h2>
+              👤 Users <span class="section-tag tag-auth">USER AUTH</span>
+            </h2>
+            <p>
+              User profile, TNC acceptance, game IDs, settings, and request
+              history.
+            </p>
+          </div>
+          <div class="endpoint-group">
+            <div class="endpoint">
+              <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                <span class="method method-GET">GET</span>
+                <span class="endpoint-path">/users/me</span>
+                <span class="endpoint-desc">Get current user profile</span>
+                <svg
+                  class="endpoint-chevron"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="m4 6 4 4 4-4" />
+                </svg>
+              </div>
+              <div class="endpoint-body">
+                <div class="notice notice-info">
+                  💡 Call on every app load to get fresh user data including
+                  role, language, ban status.
+                </div>
+                <div class="param-section">
+                  <div class="param-section-title">
+                    Response 200 — User Object
+                  </div>
+                  <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">
+                      Copy
+                    </button>
+                    {<br />
+                    &nbsp;&nbsp;<span class="key">"id"</span>:
+                    <span class="num">1</span>,
+                    <span class="key">"telegramId"</span>:
+                    <span class="str">"123456789"</span>,<br />
+                    &nbsp;&nbsp;<span class="key">"username"</span>:
+                    <span class="str">"johndoe"</span>,
+                    <span class="key">"nickname"</span>:
+                    <span class="str">"johndoe"</span>,<br />
+                    &nbsp;&nbsp;<span class="key">"firstName"</span>:
+                    <span class="str">"John"</span>,
+                    <span class="key">"lastName"</span>:
+                    <span class="str">"Doe"</span>,<br />
+                    &nbsp;&nbsp;<span class="key">"role"</span>:
+                    <span class="str">"user"</span>,
+                    <span class="key">"language"</span>:
+                    <span class="str">"en"</span>,<br />
+                    &nbsp;&nbsp;<span class="key">"tncAccepted"</span>:
+                    <span class="bool">true</span>,
+                    <span class="key">"isBanned"</span>:
+                    <span class="bool">false</span>,
+                    <span class="key">"isVip"</span>:
+                    <span class="bool">false</span>,<br />
+                    &nbsp;&nbsp;<span class="key">"broadcastOptIn"</span>:
+                    <span class="bool">true</span>,<br />
+                    &nbsp;&nbsp;<span class="key">"allTimeDepositCount"</span>:
+                    <span class="num">3</span>,
+                    <span class="key">"allTimeDepositAmount"</span>:
+                    <span class="num">500</span>,<br />
+                    &nbsp;&nbsp;<span class="key"
+                      >"currentSessionDepositCount"</span
+                    >: <span class="num">1</span>,
+                    <span class="key">"currentSessionDepositAmount"</span>:
+                    <span class="num">100</span>,<br />
+                    &nbsp;&nbsp;<span class="key">"createdAt"</span>:
+                    <span class="str">"2024-01-01T00:00:00Z"</span><br />
+                    }
+                  </div>
+                </div>
+                <div class="response-codes">
+                  <span class="response-code rc-200">200 OK</span>
+                  <span class="response-code rc-401">401 Unauthorized</span>
+                  <span class="response-code rc-403">403 Banned</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="endpoint">
+              <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                <span class="method method-POST">POST</span>
+                <span class="endpoint-path">/users/me/accept-tnc</span>
+                <span class="endpoint-desc">Accept terms and conditions</span>
+                <svg
+                  class="endpoint-chevron"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="m4 6 4 4 4-4" />
+                </svg>
+              </div>
+              <div class="endpoint-body">
+                <div class="notice notice-info">
+                  💡 Call once after user reads and accepts TNC. Required before
+                  any feature is usable.
+                </div>
+                <div class="response-codes">
+                  <span class="response-code rc-200">200 Updated User</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="endpoint">
+              <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                <span class="method method-GET">GET</span>
+                <span class="endpoint-path">/users/me/gameids</span>
+                <span class="endpoint-desc"
+                  >Get all game IDs linked to user</span
+                >
+                <svg
+                  class="endpoint-chevron"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="m4 6 4 4 4-4" />
+                </svg>
+              </div>
+              <div class="endpoint-body">
+                <div class="notice notice-info">
+                  💡 Use for prefill dropdowns in deposit form. Returns all game
+                  IDs the user has ever used.
+                </div>
+                <div class="param-section">
+                  <div class="param-section-title">
+                    Response 200 — Array of GameId objects
+                  </div>
+                  <div class="code-block">
+                    [{ <span class="key">"id"</span>:
+                    <span class="num">1</span>,
+                    <span class="key">"gameId"</span>:
+                    <span class="str">"PLAYER123"</span>,
+                    <span class="key">"lastInteractionType"</span>:
+                    <span class="str">"deposit"</span>, ... }]
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="endpoint">
+              <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                <span class="method method-GET">GET</span>
+                <span class="endpoint-path">/users/me/requests</span>
+                <span class="endpoint-desc"
+                  >Get all user's requests (My Requests page)</span
+                >
+                <svg
+                  class="endpoint-chevron"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="m4 6 4 4 4-4" />
+                </svg>
+              </div>
+              <div class="endpoint-body">
+                <div class="param-section">
+                  <div class="param-section-title">Response 200</div>
+                  <div class="code-block">
+                    {<br />
+                    &nbsp;&nbsp;<span class="key">"deposits"</span>: [...],<br />
+                    &nbsp;&nbsp;<span class="key">"withdrawals"</span>:
+                    [...],<br />
+                    &nbsp;&nbsp;<span class="key">"recoveries"</span>: [...],<br />
+                    &nbsp;&nbsp;<span class="key">"newIds"</span>: [...],<br />
+                    &nbsp;&nbsp;<span class="key">"tickets"</span>: [...],<br />
+                    &nbsp;&nbsp;<span class="key">"transfers"</span>: [...]<br />
+                    }
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="endpoint">
+              <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                <span class="method method-PATCH">PATCH</span>
+                <span class="endpoint-path">/users/me/language</span>
+                <span class="endpoint-desc">Update language preference</span>
+                <svg
+                  class="endpoint-chevron"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="m4 6 4 4 4-4" />
+                </svg>
+              </div>
+              <div class="endpoint-body">
+                <div class="param-section">
+                  <div class="param-section-title">Request Body</div>
+                  <table>
+                    <tr>
+                      <th>Field</th>
+                      <th>Type</th>
+                      <th>Required</th>
+                      <th>Description</th>
+                    </tr>
+                    <tr>
+                      <td class="param-name">language</td>
+                      <td><span class="param-type">string</span></td>
+                      <td class="param-required">required</td>
+                      <td class="param-desc">en or dv</td>
+                    </tr>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ DEPOSITS ══════════════════════════════════════════════ -->
+        <div id="section-deposits" class="page-section">
+          <div class="section-header">
+            <h2>
+              💰 Deposits <span class="section-tag tag-auth">USER AUTH</span>
+            </h2>
+            <p>
+              Submit deposit requests with slip upload. OCR is disabled — slips
+              saved to Cloudinary as-is.
+            </p>
+          </div>
+          <div class="endpoint-group">
+            <div class="endpoint">
+              <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                <span class="method method-GET">GET</span>
+                <span class="endpoint-path">/deposits</span>
+                <span class="endpoint-desc">Get user's deposit history</span>
+                <svg
+                  class="endpoint-chevron"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="m4 6 4 4 4-4" />
+                </svg>
+              </div>
+              <div class="endpoint-body">
+                <p style="color: var(--sf-ink-mid); font-size: 13px">
+                  Returns all deposits for the authenticated user, newest first.
+                  Includes gameId and session objects.
+                </p>
+              </div>
+            </div>
+
+            <div class="endpoint">
+              <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                <span class="method method-GET">GET</span>
+                <span class="endpoint-path">/deposits/payment-accounts</span>
+                <span class="endpoint-desc">Get active payment accounts</span>
+                <svg
+                  class="endpoint-chevron"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="m4 6 4 4 4-4" />
+                </svg>
+              </div>
+              <div class="endpoint-body">
+                <div class="notice notice-info">
+                  💡 Show these to the user after they select a currency. Filter
+                  on frontend by currency field.
+                </div>
+                <div class="param-section">
+                  <div class="param-section-title">Response 200</div>
+                  <div class="code-block">
+                    [{<br />&nbsp;&nbsp;<span class="key">"id"</span>:
+                    <span class="num">1</span>,
+                    <span class="key">"currency"</span>:
+                    <span class="str">"MRF"</span>,
+                    <span class="key">"type"</span>:
+                    <span class="str">"bank"</span>,<br />&nbsp;&nbsp;<span
+                      class="key"
+                      >"label"</span
+                    >: <span class="str">"Bank of Maldives"</span>,
+                    <span class="key">"accountNumber"</span>:
+                    <span class="str">"7700123456"</span
+                    >,<br />&nbsp;&nbsp;<span class="key">"accountName"</span>:
+                    <span class="str">"Company Name"</span>,
+                    <span class="key">"isActive"</span>:
+                    <span class="bool">true</span><br />}]
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="endpoint">
+              <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                <span class="method method-POST">POST</span>
+                <span class="endpoint-path">/deposits</span>
+                <span class="endpoint-desc">Submit a deposit request</span>
+                <svg
+                  class="endpoint-chevron"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="m4 6 4 4 4-4" />
+                </svg>
+              </div>
+              <div class="endpoint-body">
+                <div class="notice notice-warning">
+                  ⚠️ Send as <strong>multipart/form-data</strong> — not JSON —
+                  because of the slip file upload.
+                </div>
+                <div class="param-section">
+                  <div class="param-section-title">
+                    Request Body (multipart/form-data)
+                  </div>
+                  <table>
+                    <tr>
+                      <th>Field</th>
+                      <th>Type</th>
+                      <th>Required</th>
+                      <th>Description</th>
+                    </tr>
+                    <tr>
+                      <td class="param-name">gameId</td>
+                      <td><span class="param-type">string</span></td>
+                      <td class="param-required">required</td>
+                      <td class="param-desc">
+                        Game ID string. Created if not exists.
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="param-name">currency</td>
+                      <td><span class="param-type">string</span></td>
+                      <td class="param-required">required</td>
+                      <td class="param-desc">MRF, USD, or USDT</td>
+                    </tr>
+                    <tr>
+                      <td class="param-name">amount</td>
+                      <td><span class="param-type">number</span></td>
+                      <td class="param-required">required</td>
+                      <td class="param-desc">Deposit amount</td>
+                    </tr>
+                    <tr>
+                      <td class="param-name">slip</td>
+                      <td><span class="param-type">file</span></td>
+                      <td class="param-optional">optional</td>
+                      <td class="param-desc">
+                        Payment slip image. Uploaded to Cloudinary.
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <div class="param-section">
+                  <div class="param-section-title">Response 201</div>
+                  <div class="code-block">
+                    {<br />&nbsp;&nbsp;<span class="key">"id"</span>:
+                    <span class="num">1</span>,
+                    <span class="key">"status"</span>:
+                    <span class="str">"pending"</span>,<br />&nbsp;&nbsp;<span
+                      class="key"
+                      >"ocrStatus"</span
+                    >:
+                    <span class="str">"skipped"</span>,<br />&nbsp;&nbsp;<span
+                      class="key"
+                      >"slipImageUrl"</span
+                    >:
+                    <span class="str">"https://res.cloudinary.com/..."</span
+                    >,<br />&nbsp;&nbsp;<span class="key"
+                      >"requestedAmount"</span
+                    >: <span class="num">100</span>,
+                    <span class="key">"currency"</span>:
+                    <span class="str">"MRF"</span><br />}
+                  </div>
+                </div>
+                <div class="response-codes">
+                  <span class="response-code rc-201">201 Created</span>
+                  <span class="response-code rc-403">403 system_closed</span>
+                  <span class="response-code rc-403">403 feature_disabled</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ WITHDRAWALS ═══════════════════════════════════════════ -->
+        <div id="section-withdrawals" class="page-section">
+          <div class="section-header">
+            <h2>
+              💸 Withdrawals <span class="section-tag tag-auth">USER AUTH</span>
+            </h2>
+            <p>
+              Request withdrawals. User must be lastInteractedUser on Game ID
+              and have an approved deposit this session.
+            </p>
+          </div>
+          <div class="endpoint-group">
+            <div class="endpoint">
+              <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                <span class="method method-GET">GET</span>
+                <span class="endpoint-path">/withdrawals/eligible-gameids</span>
+                <span class="endpoint-desc"
+                  >Get eligible Game IDs for withdrawal</span
+                >
+                <svg
+                  class="endpoint-chevron"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="m4 6 4 4 4-4" />
+                </svg>
+              </div>
+              <div class="endpoint-body">
+                <div class="notice notice-info">
+                  💡 Call this first. If empty array — show "No eligible Game
+                  IDs, make a deposit first" and disable the form.
+                </div>
+              </div>
+            </div>
+            <div class="endpoint">
+              <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                <span class="method method-GET">GET</span>
+                <span class="endpoint-path">/withdrawals</span>
+                <span class="endpoint-desc">Get user's withdrawal history</span>
+                <svg
+                  class="endpoint-chevron"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="m4 6 4 4 4-4" />
+                </svg>
+              </div>
+              <div class="endpoint-body">
+                <p style="color: var(--sf-ink-mid); font-size: 13px">
+                  Returns all withdrawals newest first with gameId and session.
+                </p>
+              </div>
+            </div>
+            <div class="endpoint">
+              <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                <span class="method method-POST">POST</span>
+                <span class="endpoint-path">/withdrawals</span>
+                <span class="endpoint-desc">Submit a withdrawal request</span>
+                <svg
+                  class="endpoint-chevron"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="m4 6 4 4 4-4" />
+                </svg>
+              </div>
+              <div class="endpoint-body">
+                <div class="param-section">
+                  <div class="param-section-title">Request Body (JSON)</div>
+                  <table>
+                    <tr>
+                      <th>Field</th>
+                      <th>Type</th>
+                      <th>Required</th>
+                      <th>Description</th>
+                    </tr>
+                    <tr>
+                      <td class="param-name">gameId</td>
+                      <td><span class="param-type">string</span></td>
+                      <td class="param-required">required</td>
+                      <td class="param-desc">Must pass eligibility check</td>
+                    </tr>
+                    <tr>
+                      <td class="param-name">amount</td>
+                      <td><span class="param-type">number</span></td>
+                      <td class="param-required">required</td>
+                      <td class="param-desc">
+                        Must be ≥ withdrawal_min config
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <div class="response-codes">
+                  <span class="response-code rc-201">201 Created</span>
+                  <span class="response-code rc-403">403 not_eligible</span>
+                  <span class="response-code rc-403"
+                    >403 gameid_not_eligible</span
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ RECOVERIES ════════════════════════════════════════════ -->
+        <div id="section-recoveries" class="page-section">
+          <div class="section-header">
+            <h2>
+              🔄 Recoveries <span class="section-tag tag-auth">USER AUTH</span>
+            </h2>
+            <p>
+              Recovery requests. Requires at least one approved deposit in
+              current session.
+            </p>
+          </div>
+          <div class="endpoint-group">
+            <div class="endpoint">
+              <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                <span class="method method-GET">GET</span>
+                <span class="endpoint-path">/recoveries/eligible-gameids</span>
+                <span class="endpoint-desc"
+                  >Get eligible Game IDs for recovery</span
+                >
+                <svg
+                  class="endpoint-chevron"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="m4 6 4 4 4-4" />
+                </svg>
+              </div>
+              <div class="endpoint-body">
+                <div class="notice notice-info">
+                  💡 Returns game IDs where user has an approved deposit in the
+                  current session. No lastInteracted check for recovery.
+                </div>
+              </div>
+            </div>
+            <div class="endpoint">
+              <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                <span class="method method-GET">GET</span>
+                <span class="endpoint-path">/recoveries</span>
+                <span class="endpoint-desc">Get user's recovery history</span>
+                <svg
+                  class="endpoint-chevron"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="m4 6 4 4 4-4" />
+                </svg>
+              </div>
+              <div class="endpoint-body">
+                <p style="color: var(--sf-ink-mid); font-size: 13px">
+                  Returns all recoveries newest first.
+                </p>
+              </div>
+            </div>
+            <div class="endpoint">
+              <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                <span class="method method-POST">POST</span>
+                <span class="endpoint-path">/recoveries</span>
+                <span class="endpoint-desc">Submit a recovery request</span>
+                <svg
+                  class="endpoint-chevron"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="m4 6 4 4 4-4" />
+                </svg>
+              </div>
+              <div class="endpoint-body">
+                <div class="param-section">
+                  <div class="param-section-title">Request Body (JSON)</div>
+                  <table>
+                    <tr>
+                      <th>Field</th>
+                      <th>Type</th>
+                      <th>Required</th>
+                      <th>Description</th>
+                    </tr>
+                    <tr>
+                      <td class="param-name">gameId</td>
+                      <td><span class="param-type">string</span></td>
+                      <td class="param-required">required</td>
+                      <td class="param-desc">
+                        Game ID to recover. Type defaults to "recovery".
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <div class="response-codes">
+                  <span class="response-code rc-201">201 Created</span>
+                  <span class="response-code rc-403">403 not_eligible</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ NEW ID ════════════════════════════════════════════════ -->
+        <div id="section-newid" class="page-section">
+          <div class="section-header">
+            <h2>
+              🆕 New ID Requests
+              <span class="section-tag tag-auth">USER AUTH</span>
+            </h2>
+            <p>
+              Request a new Game ID. On approval, ID is created and linked to
+              the user automatically.
+            </p>
+          </div>
+          <div class="endpoint-group">
+            <div class="endpoint">
+              <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                <span class="method method-GET">GET</span>
+                <span class="endpoint-path">/newid</span>
+                <span class="endpoint-desc"
+                  >Get user's new ID request history</span
+                >
+                <svg
+                  class="endpoint-chevron"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="m4 6 4 4 4-4" />
+                </svg>
+              </div>
+              <div class="endpoint-body">
+                <p style="color: var(--sf-ink-mid); font-size: 13px">
+                  Returns all new ID requests newest first.
+                </p>
+              </div>
+            </div>
+            <div class="endpoint">
+              <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                <span class="method method-POST">POST</span>
+                <span class="endpoint-path">/newid</span>
+                <span class="endpoint-desc">Submit a new ID request</span>
+                <svg
+                  class="endpoint-chevron"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="m4 6 4 4 4-4" />
+                </svg>
+              </div>
+              <div class="endpoint-body">
+                <div class="param-section">
+                  <div class="param-section-title">Request Body (JSON)</div>
+                  <table>
+                    <tr>
+                      <th>Field</th>
+                      <th>Type</th>
+                      <th>Required</th>
+                      <th>Description</th>
+                    </tr>
+                    <tr>
+                      <td class="param-name">requestedGameId</td>
+                      <td><span class="param-type">string</span></td>
+                      <td class="param-required">required</td>
+                      <td class="param-desc">
+                        Desired Game ID string. Must not already exist.
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <div class="response-codes">
+                  <span class="response-code rc-201">201 Created</span>
+                  <span class="response-code rc-409"
+                    >409 ID already exists</span
+                  >
+                  <span class="response-code rc-409"
+                    >409 Pending request exists</span
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ TRANSFERS ═════════════════════════════════════════════ -->
+        <div id="section-transfers" class="page-section">
+          <div class="section-header">
+            <h2>
+              🔀 Chip Transfers
+              <span class="section-tag tag-auth">USER AUTH</span>
+            </h2>
+            <p>
+              Transfer chips between Game IDs. User must be current owner of
+              source Game ID.
+            </p>
+          </div>
+          <div class="endpoint-group">
+            <div class="endpoint">
+              <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                <span class="method method-GET">GET</span>
+                <span class="endpoint-path">/transfers</span>
+                <span class="endpoint-desc"
+                  >Get user's chip transfer history</span
+                >
+                <svg
+                  class="endpoint-chevron"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="m4 6 4 4 4-4" />
+                </svg>
+              </div>
+              <div class="endpoint-body">
+                <p style="color: var(--sf-ink-mid); font-size: 13px">
+                  Returns all chip transfers with fromGameId and toGameId
+                  objects.
+                </p>
+              </div>
+            </div>
+            <div class="endpoint">
+              <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                <span class="method method-POST">POST</span>
+                <span class="endpoint-path">/transfers</span>
+                <span class="endpoint-desc"
+                  >Submit a chip transfer request</span
+                >
+                <svg
+                  class="endpoint-chevron"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="m4 6 4 4 4-4" />
+                </svg>
+              </div>
+              <div class="endpoint-body">
+                <div class="param-section">
+                  <div class="param-section-title">Request Body (JSON)</div>
+                  <table>
+                    <tr>
+                      <th>Field</th>
+                      <th>Type</th>
+                      <th>Required</th>
+                      <th>Description</th>
+                    </tr>
+                    <tr>
+                      <td class="param-name">fromGameId</td>
+                      <td><span class="param-type">string</span></td>
+                      <td class="param-required">required</td>
+                      <td class="param-desc">
+                        Source Game ID — user must be current owner
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="param-name">toGameId</td>
+                      <td><span class="param-type">string</span></td>
+                      <td class="param-required">required</td>
+                      <td class="param-desc">
+                        Destination Game ID — must already exist
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="param-name">amount</td>
+                      <td><span class="param-type">number</span></td>
+                      <td class="param-required">required</td>
+                      <td class="param-desc">Amount to transfer</td>
+                    </tr>
+                  </table>
+                </div>
+                <div class="response-codes">
+                  <span class="response-code rc-201">201 Created</span>
+                  <span class="response-code rc-403"
+                    >403 gameid_not_eligible</span
+                  >
+                  <span class="response-code rc-404"
+                    >404 Game ID not found</span
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ TICKETS ═══════════════════════════════════════════════ -->
+        <div id="section-tickets" class="page-section">
+          <div class="section-header">
+            <h2>
+              🎫 Support Tickets
+              <span class="section-tag tag-auth">USER AUTH</span>
+            </h2>
+            <p>Submit support tickets with optional photo attachment.</p>
+          </div>
+          <div class="endpoint-group">
+            <div class="endpoint">
+              <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                <span class="method method-GET">GET</span>
+                <span class="endpoint-path">/tickets</span>
+                <span class="endpoint-desc">Get user's support tickets</span>
+                <svg
+                  class="endpoint-chevron"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="m4 6 4 4 4-4" />
+                </svg>
+              </div>
+              <div class="endpoint-body">
+                <p style="color: var(--sf-ink-mid); font-size: 13px">
+                  Returns all tickets newest first.
+                </p>
+              </div>
+            </div>
+            <div class="endpoint">
+              <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                <span class="method method-POST">POST</span>
+                <span class="endpoint-path">/tickets</span>
+                <span class="endpoint-desc">Submit a support ticket</span>
+                <svg
+                  class="endpoint-chevron"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="m4 6 4 4 4-4" />
+                </svg>
+              </div>
+              <div class="endpoint-body">
+                <div class="notice notice-warning">
+                  ⚠️ Send as <strong>multipart/form-data</strong> if attaching a
+                  photo.
+                </div>
+                <div class="param-section">
+                  <div class="param-section-title">
+                    Request Body (multipart/form-data)
+                  </div>
+                  <table>
+                    <tr>
+                      <th>Field</th>
+                      <th>Type</th>
+                      <th>Required</th>
+                      <th>Description</th>
+                    </tr>
+                    <tr>
+                      <td class="param-name">message</td>
+                      <td><span class="param-type">string</span></td>
+                      <td class="param-required">required</td>
+                      <td class="param-desc">Issue description</td>
+                    </tr>
+                    <tr>
+                      <td class="param-name">photo</td>
+                      <td><span class="param-type">file</span></td>
+                      <td class="param-optional">optional</td>
+                      <td class="param-desc">Optional screenshot or photo</td>
+                    </tr>
+                  </table>
+                </div>
+                <div class="response-codes">
+                  <span class="response-code rc-201">201 Created</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ ADMIN DASHBOARD ═══════════════════════════════════════ -->
+        <div id="section-admin-dashboard" class="page-section">
+          <div class="section-header">
+            <h2>
+              📊 Admin Dashboard
+              <span class="section-tag tag-admin">ADMIN ONLY</span>
+            </h2>
+            <p>
+              Real-time summary of pending requests, session stats, and recent
+              activity.
+            </p>
+          </div>
+          <div class="endpoint-group">
+            <div class="endpoint">
+              <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                <span class="method method-GET">GET</span>
+                <span class="endpoint-path">/admin/dashboard</span>
+                <span class="endpoint-desc">Get dashboard summary</span>
+                <svg
+                  class="endpoint-chevron"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="m4 6 4 4 4-4" />
+                </svg>
+              </div>
+              <div class="endpoint-body">
+                <div class="param-section">
+                  <div class="param-section-title">Response 200</div>
+                  <div class="code-block">
+                    {<br />
+                    &nbsp;&nbsp;<span class="key">"session"</span>: {
+                    <span class="key">"id"</span>: <span class="num">1</span>,
+                    <span class="key">"name"</span>:
+                    <span class="str">"Week 1"</span>,
+                    <span class="key">"status"</span>:
+                    <span class="str">"open"</span>,
+                    <span class="key">"totalDepositAmount"</span>:
+                    <span class="num">5000</span>, ... },<br />
+                    &nbsp;&nbsp;<span class="key">"pending"</span>: {<br />
+                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"deposits"</span>:
+                    <span class="num">3</span>,
+                    <span class="key">"withdrawals"</span>:
+                    <span class="num">1</span>,
+                    <span class="key">"recoveries"</span>:
+                    <span class="num">0</span>,<br />
+                    &nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"newIds"</span>:
+                    <span class="num">2</span>,
+                    <span class="key">"tickets"</span>:
+                    <span class="num">1</span>,
+                    <span class="key">"transfers"</span>:
+                    <span class="num">0</span>,
+                    <span class="key">"total"</span>: <span class="num">7</span
+                    ><br />
+                    &nbsp;&nbsp;},<br />
+                    &nbsp;&nbsp;<span class="key">"totalUsers"</span>:
+                    <span class="num">142</span>,<br />
+                    &nbsp;&nbsp;<span class="key">"recentLogs"</span>: [...]<br />
+                    }
+                  </div>
+                </div>
+                <div class="notice notice-info">
+                  💡 Poll this every 30 seconds for near-realtime updates on the
+                  admin dashboard.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ ADMIN SESSIONS ════════════════════════════════════════ -->
+        <div id="section-admin-sessions" class="page-section">
+          <div class="section-header">
+            <h2>
+              🗓️ Admin Sessions
+              <span class="section-tag tag-admin">ADMIN ONLY</span>
+            </h2>
+            <p>
+              Open and close sessions. Only one session can be active at a time.
+            </p>
+          </div>
+          <div class="endpoint-group">
+            <div class="endpoint">
+              <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                <span class="method method-GET">GET</span>
+                <span class="endpoint-path">/admin/sessions</span>
+                <span class="endpoint-desc">Get all sessions</span>
+                <svg
+                  class="endpoint-chevron"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="m4 6 4 4 4-4" />
+                </svg>
+              </div>
+              <div class="endpoint-body">
+                <p style="color: var(--sf-ink-mid); font-size: 13px">
+                  Returns all sessions newest first with openedBy and closedBy
+                  user summaries.
+                </p>
+              </div>
+            </div>
+            <div class="endpoint">
+              <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                <span class="method method-GET">GET</span>
+                <span class="endpoint-path">/admin/sessions/active</span>
+                <span class="endpoint-desc">Get currently active session</span>
+                <svg
+                  class="endpoint-chevron"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="m4 6 4 4 4-4" />
+                </svg>
+              </div>
+              <div class="endpoint-body">
+                <div class="notice notice-info">
+                  💡 Returns null if no session is open.
+                </div>
+              </div>
+            </div>
+            <div class="endpoint">
+              <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                <span class="method method-POST">POST</span>
+                <span class="endpoint-path">/admin/sessions/open</span>
+                <span class="endpoint-desc">Open a new session</span>
+                <svg
+                  class="endpoint-chevron"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="m4 6 4 4 4-4" />
+                </svg>
+              </div>
+              <div class="endpoint-body">
+                <div class="notice notice-warning">
+                  ⚠️ Resets all user session counters (currentSession*) to 0.
+                  Updates system_status config to "open".
+                </div>
+                <div class="param-section">
+                  <div class="param-section-title">Request Body (JSON)</div>
+                  <table>
+                    <tr>
+                      <th>Field</th>
+                      <th>Type</th>
+                      <th>Required</th>
+                      <th>Description</th>
+                    </tr>
+                    <tr>
+                      <td class="param-name">name</td>
+                      <td><span class="param-type">string</span></td>
+                      <td class="param-optional">optional</td>
+                      <td class="param-desc">
+                        Custom session name e.g. "Week 12"
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <div class="response-codes">
+                  <span class="response-code rc-201">201 Created</span>
+                  <span class="response-code rc-409"
+                    >409 Session already open</span
+                  >
+                </div>
+              </div>
+            </div>
+            <div class="endpoint">
+              <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                <span class="method method-POST">POST</span>
+                <span class="endpoint-path">/admin/sessions/close</span>
+                <span class="endpoint-desc">Close the active session</span>
+                <svg
+                  class="endpoint-chevron"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="m4 6 4 4 4-4" />
+                </svg>
+              </div>
+              <div class="endpoint-body">
+                <div class="notice notice-warning">
+                  ⚠️ Updates system_status config to "closed". All new requests
+                  will be blocked.
+                </div>
+                <div class="response-codes">
+                  <span class="response-code rc-200">200 OK</span>
+                  <span class="response-code rc-404">404 No open session</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ ADMIN REQUESTS ════════════════════════════════════════ -->
+        <div id="section-admin-requests" class="page-section">
+          <div class="section-header">
+            <h2>
+              📥 Admin Requests
+              <span class="section-tag tag-admin">ADMIN ONLY</span>
+            </h2>
+            <p>
+              View and action all request types. All list endpoints support
+              ?status= and ?sessionId= filters.
+            </p>
+          </div>
+          <div class="endpoint-group">
+            <div class="endpoint">
+              <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                <span class="method method-GET">GET</span>
+                <span class="endpoint-path"
+                  >/admin/requests/<span
+                    >deposits|withdrawals|recoveries|newid|tickets|transfers</span
+                  ></span
+                >
+                <span class="endpoint-desc">List requests by type</span>
+                <svg
+                  class="endpoint-chevron"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="m4 6 4 4 4-4" />
+                </svg>
+              </div>
+              <div class="endpoint-body">
+                <div class="param-section">
+                  <div class="param-section-title">Query Parameters</div>
+                  <table>
+                    <tr>
+                      <th>Param</th>
+                      <th>Type</th>
+                      <th>Description</th>
+                    </tr>
+                    <tr>
+                      <td class="param-name">status</td>
+                      <td><span class="param-type">string</span></td>
+                      <td class="param-desc">pending | approved | rejected</td>
+                    </tr>
+                    <tr>
+                      <td class="param-name">sessionId</td>
+                      <td><span class="param-type">number</span></td>
+                      <td class="param-desc">Filter by session ID</td>
+                    </tr>
+                  </table>
+                </div>
+                <div class="notice notice-info">
+                  💡 All list results include user, gameId, session, and admin
+                  objects for display.
+                </div>
+              </div>
+            </div>
+
+            <div class="endpoint">
+              <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                <span class="method method-POST">POST</span>
+                <span class="endpoint-path"
+                  >/admin/requests/deposits/<span>:id</span>/approve</span
+                >
+                <span class="endpoint-desc">Approve a deposit</span>
+                <svg
+                  class="endpoint-chevron"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="m4 6 4 4 4-4" />
+                </svg>
+              </div>
+              <div class="endpoint-body">
+                <div class="notice notice-info">
+                  💡 Send as multipart/form-data to optionally attach a proof
+                  slip image.
+                </div>
+                <div class="param-section">
+                  <div class="param-section-title">
+                    Request Body (multipart/form-data)
+                  </div>
+                  <table>
+                    <tr>
+                      <th>Field</th>
+                      <th>Type</th>
+                      <th>Required</th>
+                      <th>Description</th>
+                    </tr>
+                    <tr>
+                      <td class="param-name">approvedAmount</td>
+                      <td><span class="param-type">number</span></td>
+                      <td class="param-optional">optional</td>
+                      <td class="param-desc">
+                        Adjusted amount. Defaults to requestedAmount.
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="param-name">adminNote</td>
+                      <td><span class="param-type">string</span></td>
+                      <td class="param-optional">optional</td>
+                      <td class="param-desc">Admin note sent to user</td>
+                    </tr>
+                    <tr>
+                      <td class="param-name">slip</td>
+                      <td><span class="param-type">file</span></td>
+                      <td class="param-optional">optional</td>
+                      <td class="param-desc">
+                        Proof slip to attach and send to user
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <div class="notice notice-warning">
+                  ⚠️ Increments session totalDepositCount/Amount and user
+                  allTime + currentSession counters atomically.
+                </div>
+              </div>
+            </div>
+
+            <div class="endpoint">
+              <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                <span class="method method-POST">POST</span>
+                <span class="endpoint-path"
+                  >/admin/requests/deposits/<span>:id</span>/reject</span
+                >
+                <span class="endpoint-desc">Reject a deposit</span>
+                <svg
+                  class="endpoint-chevron"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="m4 6 4 4 4-4" />
+                </svg>
+              </div>
+              <div class="endpoint-body">
+                <div class="param-section">
+                  <div class="param-section-title">Request Body (JSON)</div>
+                  <table>
+                    <tr>
+                      <th>Field</th>
+                      <th>Type</th>
+                      <th>Required</th>
+                      <th>Description</th>
+                    </tr>
+                    <tr>
+                      <td class="param-name">adminNote</td>
+                      <td><span class="param-type">string</span></td>
+                      <td class="param-required">required</td>
+                      <td class="param-desc">
+                        Rejection reason — shown to user in bot message
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <div class="endpoint">
+              <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                <span class="method method-POST">POST</span>
+                <span class="endpoint-path"
+                  >/admin/requests/<span>type</span>/<span>:id</span>/approve —
+                  reject</span
+                >
+                <span class="endpoint-desc"
+                  >Same pattern for all other types</span
+                >
+                <svg
+                  class="endpoint-chevron"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="m4 6 4 4 4-4" />
+                </svg>
+              </div>
+              <div class="endpoint-body">
+                <div class="notice notice-info">
+                  Withdrawals, recoveries, newid, and transfers all follow
+                  identical approve/reject pattern. Withdrawals and recoveries
+                  also accept a <code>slip</code> file on approve for proof
+                  attachment. Rejection always requires <code>adminNote</code>.
+                </div>
+                <div class="param-section">
+                  <div class="param-section-title">
+                    All Approve/Reject Endpoints
+                  </div>
+                  <table>
+                    <tr>
+                      <th>Endpoint</th>
+                      <th>Slip on Approve</th>
+                      <th>Amount Adjust</th>
+                    </tr>
+                    <tr>
+                      <td class="param-name">deposits/:id/approve</td>
+                      <td>✅</td>
+                      <td>✅ approvedAmount</td>
+                    </tr>
+                    <tr>
+                      <td class="param-name">withdrawals/:id/approve</td>
+                      <td>✅</td>
+                      <td>✅ approvedAmount</td>
+                    </tr>
+                    <tr>
+                      <td class="param-name">recoveries/:id/approve</td>
+                      <td>✅</td>
+                      <td>❌</td>
+                    </tr>
+                    <tr>
+                      <td class="param-name">newid/:id/approve</td>
+                      <td>❌</td>
+                      <td>❌</td>
+                    </tr>
+                    <tr>
+                      <td class="param-name">transfers/:id/approve</td>
+                      <td>❌</td>
+                      <td>❌</td>
+                    </tr>
+                    <tr>
+                      <td class="param-name">tickets/:id/status</td>
+                      <td>❌</td>
+                      <td>❌ (PATCH, not POST)</td>
+                    </tr>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ ADMIN USERS ═══════════════════════════════════════════ -->
+        <div id="section-admin-users" class="page-section">
+          <div class="section-header">
+            <h2>
+              👥 Admin User Management
+              <span class="section-tag tag-admin">ADMIN ONLY</span>
+            </h2>
+            <p>
+              Search users, view profiles, manage bans, VIP status, and roles.
+            </p>
+          </div>
+          <div class="endpoint-group">
+            <div class="endpoint">
+              <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                <span class="method method-GET">GET</span>
+                <span class="endpoint-path">/admin/users</span>
+                <span class="endpoint-desc"
+                  >List all users with search and filters</span
+                >
+                <svg
+                  class="endpoint-chevron"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="m4 6 4 4 4-4" />
+                </svg>
+              </div>
+              <div class="endpoint-body">
+                <div class="param-section">
+                  <div class="param-section-title">Query Parameters</div>
+                  <table>
+                    <tr>
+                      <th>Param</th>
+                      <th>Type</th>
+                      <th>Description</th>
+                    </tr>
+                    <tr>
+                      <td class="param-name">search</td>
+                      <td><span class="param-type">string</span></td>
+                      <td class="param-desc">
+                        Searches username, nickname, firstName
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="param-name">isVip</td>
+                      <td><span class="param-type">boolean</span></td>
+                      <td class="param-desc">Filter VIP users</td>
+                    </tr>
+                    <tr>
+                      <td class="param-name">isBanned</td>
+                      <td><span class="param-type">boolean</span></td>
+                      <td class="param-desc">Filter banned users</td>
+                    </tr>
+                  </table>
+                </div>
+              </div>
+            </div>
+            <div class="endpoint">
+              <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                <span class="method method-GET">GET</span>
+                <span class="endpoint-path">/admin/users/<span>:id</span></span>
+                <span class="endpoint-desc"
+                  >Full user profile with all history</span
+                >
+                <svg
+                  class="endpoint-chevron"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="m4 6 4 4 4-4" />
+                </svg>
+              </div>
+              <div class="endpoint-body">
+                <div class="notice notice-info">
+                  💡 Returns user + all gameIds + all deposits, withdrawals,
+                  recoveries, newIds, tickets, transfers in one call. Use for
+                  the User Profile page.
+                </div>
+              </div>
+            </div>
+            <div class="endpoint">
+              <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                <span class="method method-GET">GET</span>
+                <span class="endpoint-path"
+                  >/admin/users/<span>:id</span>/timeline</span
+                >
+                <span class="endpoint-desc">User activity timeline</span>
+                <svg
+                  class="endpoint-chevron"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="m4 6 4 4 4-4" />
+                </svg>
+              </div>
+              <div class="endpoint-body">
+                <p style="color: var(--sf-ink-mid); font-size: 13px">
+                  Returns last 100 activity log entries for this user. Use for
+                  the timeline view on the user profile page.
+                </p>
+              </div>
+            </div>
+            <div class="endpoint">
+              <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                <span class="method method-PATCH">PATCH</span>
+                <span class="endpoint-path"
+                  >/admin/users/<span>:id</span>/ban — unban — vip — role</span
+                >
+                <span class="endpoint-desc">Update user status</span>
+                <svg
+                  class="endpoint-chevron"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="m4 6 4 4 4-4" />
+                </svg>
+              </div>
+              <div class="endpoint-body">
+                <div class="param-section">
+                  <div class="param-section-title">Endpoints & Payloads</div>
+                  <table>
+                    <tr>
+                      <th>Endpoint</th>
+                      <th>Body</th>
+                      <th>Notes</th>
+                    </tr>
+                    <tr>
+                      <td class="param-name">PATCH /admin/users/:id/ban</td>
+                      <td>none</td>
+                      <td class="param-desc">Bans user immediately</td>
+                    </tr>
+                    <tr>
+                      <td class="param-name">PATCH /admin/users/:id/unban</td>
+                      <td>none</td>
+                      <td class="param-desc">Removes ban</td>
+                    </tr>
+                    <tr>
+                      <td class="param-name">PATCH /admin/users/:id/vip</td>
+                      <td><code>{ isVip: true|false }</code></td>
+                      <td class="param-desc">Toggle VIP</td>
+                    </tr>
+                    <tr>
+                      <td class="param-name">PATCH /admin/users/:id/role</td>
+                      <td><code>{ role: "admin" }</code></td>
+                      <td class="param-desc">
+                        user|admin|superadmin. Only superadmin can assign
+                        superadmin.
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script>
+      function showSection(id) {
+        document
+          .querySelectorAll(".page-section")
+          .forEach((s) => s.classList.remove("active"));
+        document.getElementById("section-" + id)?.classList.add("active");
+        document
+          .querySelectorAll(".sidebar-link")
+          .forEach((l) => l.classList.remove("active"));
+        event.currentTarget.classList.add("active");
+        window.scrollTo(0, 0);
+      }
+
+      function toggleEndpoint(header) {
+        const body = header.nextElementSibling;
+        const isOpen = body.classList.contains("open");
+        // Close all in same group
+        header
+          .closest(".endpoint-group")
+          .querySelectorAll(".endpoint-body")
+          .forEach((b) => b.classList.remove("open"));
+        header
+          .closest(".endpoint-group")
+          .querySelectorAll(".endpoint-header")
+          .forEach((h) => h.classList.remove("open"));
+        if (!isOpen) {
+          body.classList.add("open");
+          header.classList.add("open");
+        }
+      }
+
+      function copyCode(btn) {
+        const text = btn.parentElement.innerText.replace("Copy", "").trim();
+        navigator.clipboard.writeText(text).then(() => {
+          btn.textContent = "Copied!";
+          btn.classList.add("copied");
+          setTimeout(() => {
+            btn.textContent = "Copy";
+            btn.classList.remove("copied");
+          }, 1500);
+        });
+      }
+
+      function filterSidebar(query) {
+        const q = query.toLowerCase();
+        document.querySelectorAll(".sidebar-link").forEach((link) => {
+          link.style.display = link.textContent.toLowerCase().includes(q)
+            ? ""
+            : "none";
+        });
+        document.querySelectorAll(".sidebar-section-label").forEach((label) => {
+          label.style.display = "";
+        });
+      }
+    </script>
+  </body>
+</html>

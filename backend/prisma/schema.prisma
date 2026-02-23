@@ -1,0 +1,336 @@
+// ============================================================
+// PRISMA SCHEMA — Telegram Bot & Mini App
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── USERS ──────────────────────────────────────────────────
+model User {
+  id          Int      @id @default(autoincrement())
+  telegramId  BigInt   @unique
+  username    String?
+  nickname    String?
+  firstName   String?
+  lastName    String?
+  role        String   @default("user")
+  language    String   @default("en")
+  broadcastOptIn Boolean @default(true)
+  tncAccepted    Boolean @default(false)
+  tncAcceptedAt  DateTime?
+  isBanned    Boolean  @default(false)
+  isVip       Boolean  @default(false)
+
+  allTimeDepositCount       Int   @default(0)
+  allTimeDepositAmount      Float @default(0)
+  allTimeWithdrawalCount    Int   @default(0)
+  allTimeWithdrawalAmount   Float @default(0)
+  allTimeRecoveryCount      Int   @default(0)
+
+  currentSessionDepositCount     Int   @default(0)
+  currentSessionDepositAmount    Float @default(0)
+  currentSessionWithdrawalCount  Int   @default(0)
+  currentSessionWithdrawalAmount Float @default(0)
+
+  createdAt DateTime @default(now())
+
+  deposits         Deposit[]
+  withdrawals      Withdrawal[]
+  recoveries       Recovery[]
+  newIdRequests    NewIdRequest[]
+  supportTickets   SupportTicket[]
+  chipTransfers    ChipTransfer[]
+  userGameIds      UserGameId[]
+  activityLogs     ActivityLog[]    @relation("UserLogs")
+  adminActions     ActivityLog[]    @relation("AdminLogs")
+  sessionsOpened   Session[]        @relation("SessionOpener")
+  sessionsClosed   Session[]        @relation("SessionCloser")
+  giftRecoveries   Recovery[]       @relation("GiftCreator")
+  adminDeposits    Deposit[]        @relation("DepositAdmin")
+  adminWithdrawals Withdrawal[]     @relation("WithdrawalAdmin")
+  adminRecoveries  Recovery[]       @relation("RecoveryAdmin")
+  adminNewIds      NewIdRequest[]   @relation("NewIdAdmin")
+  adminTickets     SupportTicket[]  @relation("TicketAdmin")
+  adminTransfers   ChipTransfer[]   @relation("TransferAdmin")
+  lastInteractedGameIds GameId[]    @relation("LastInteracted")
+}
+
+// ─── SESSIONS ───────────────────────────────────────────────
+model Session {
+  id           Int       @id @default(autoincrement())
+  name         String?
+  status       String    @default("open")
+  openedById   Int
+  closedById   Int?
+  openedAt     DateTime  @default(now())
+  closedAt     DateTime?
+
+  totalDepositCount      Int   @default(0)
+  totalDepositAmount     Float @default(0)
+  totalWithdrawalCount   Int   @default(0)
+  totalWithdrawalAmount  Float @default(0)
+  totalRecoveryCount     Int   @default(0)
+  totalNewIdCount        Int   @default(0)
+  totalSupportCount      Int   @default(0)
+  totalChipTransferCount Int   @default(0)
+
+  openedBy       User            @relation("SessionOpener", fields: [openedById], references: [id])
+  closedBy       User?           @relation("SessionCloser", fields: [closedById], references: [id])
+  deposits       Deposit[]
+  withdrawals    Withdrawal[]
+  recoveries     Recovery[]
+  newIdRequests  NewIdRequest[]
+  supportTickets SupportTicket[]
+  chipTransfers  ChipTransfer[]
+  activityLogs   ActivityLog[]
+}
+
+// ─── GAME IDs ────────────────────────────────────────────────
+model GameId {
+  id                   Int       @id @default(autoincrement())
+  gameId               String    @unique
+  createdAt            DateTime  @default(now())
+  lastInteractedUserId Int?
+  lastInteractedAt     DateTime?
+  lastInteractionType  String?
+
+  lastInteractedUser User?        @relation("LastInteracted", fields: [lastInteractedUserId], references: [id])
+  userGameIds        UserGameId[]
+  deposits           Deposit[]
+  withdrawals        Withdrawal[]
+  recoveries         Recovery[]
+  newIdRequests      NewIdRequest[]
+  chipTransfersFrom  ChipTransfer[] @relation("FromGameId")
+  chipTransfersTo    ChipTransfer[] @relation("ToGameId")
+  activityLogs       ActivityLog[]
+}
+
+// ─── USER <-> GAME ID JOIN ───────────────────────────────────
+model UserGameId {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  gameIdId  Int
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id])
+  gameId GameId @relation(fields: [gameIdId], references: [id])
+
+  @@unique([userId, gameIdId])
+}
+
+// ─── DEPOSITS ────────────────────────────────────────────────
+model Deposit {
+  id              Int      @id @default(autoincrement())
+  userId          Int
+  sessionId       Int
+  gameIdId        Int
+  currency        String
+  requestedAmount Float
+  approvedAmount  Float?
+  slipImageUrl    String?
+  ocrStatus       String   @default("pending")
+  ocrData         Json?
+  ocrAmountMatch  Boolean?
+  status          String   @default("pending")
+  adminNote       String?
+  adminId         Int?
+  createdAt       DateTime @default(now())
+  actionedAt      DateTime?
+
+  user         User         @relation(fields: [userId], references: [id])
+  session      Session      @relation(fields: [sessionId], references: [id])
+  gameId       GameId       @relation(fields: [gameIdId], references: [id])
+  admin        User?        @relation("DepositAdmin", fields: [adminId], references: [id])
+  activityLogs ActivityLog[]
+}
+
+// ─── WITHDRAWALS ─────────────────────────────────────────────
+model Withdrawal {
+  id              Int      @id @default(autoincrement())
+  userId          Int
+  sessionId       Int
+  gameIdId        Int
+  requestedAmount Float
+  approvedAmount  Float?
+  slipImageUrl    String?
+  extraField1     String?
+  adminNote       String?
+  adminId         Int?
+  status          String   @default("pending")
+  createdAt       DateTime @default(now())
+  actionedAt      DateTime?
+
+  user         User         @relation(fields: [userId], references: [id])
+  session      Session      @relation(fields: [sessionId], references: [id])
+  gameId       GameId       @relation(fields: [gameIdId], references: [id])
+  admin        User?        @relation("WithdrawalAdmin", fields: [adminId], references: [id])
+  activityLogs ActivityLog[]
+}
+
+// ─── RECOVERIES ──────────────────────────────────────────────
+model Recovery {
+  id               Int      @id @default(autoincrement())
+  userId           Int
+  sessionId        Int
+  gameIdId         Int
+  type             String   @default("recovery")
+  createdByAdminId Int?
+  slipImageUrl     String?
+  extraField1      String?
+  adminNote        String?
+  adminId          Int?
+  status           String   @default("pending")
+  createdAt        DateTime @default(now())
+  actionedAt       DateTime?
+
+  user           User     @relation(fields: [userId], references: [id])
+  session        Session  @relation(fields: [sessionId], references: [id])
+  gameId         GameId   @relation(fields: [gameIdId], references: [id])
+  createdByAdmin User?    @relation("GiftCreator", fields: [createdByAdminId], references: [id])
+  admin          User?    @relation("RecoveryAdmin", fields: [adminId], references: [id])
+  activityLogs   ActivityLog[]
+}
+
+// ─── NEW ID REQUESTS ─────────────────────────────────────────
+model NewIdRequest {
+  id              Int      @id @default(autoincrement())
+  userId          Int
+  sessionId       Int
+  gameIdId        Int?
+  requestedGameId String
+  adminNote       String?
+  adminId         Int?
+  status          String   @default("pending")
+  createdAt       DateTime @default(now())
+  actionedAt      DateTime?
+
+  user         User         @relation(fields: [userId], references: [id])
+  session      Session      @relation(fields: [sessionId], references: [id])
+  gameId       GameId?      @relation(fields: [gameIdId], references: [id])
+  admin        User?        @relation("NewIdAdmin", fields: [adminId], references: [id])
+  activityLogs ActivityLog[]
+}
+
+// ─── SUPPORT TICKETS ─────────────────────────────────────────
+model SupportTicket {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  sessionId  Int
+  message    String
+  photoUrl   String?
+  adminNote  String?
+  adminId    Int?
+  status     String   @default("open")
+  createdAt  DateTime @default(now())
+  actionedAt DateTime?
+
+  user         User         @relation(fields: [userId], references: [id])
+  session      Session      @relation(fields: [sessionId], references: [id])
+  admin        User?        @relation("TicketAdmin", fields: [adminId], references: [id])
+  activityLogs ActivityLog[]
+}
+
+// ─── CHIP TRANSFERS ──────────────────────────────────────────
+model ChipTransfer {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  sessionId    Int
+  fromGameIdId Int
+  toGameIdId   Int
+  amount       Float
+  adminNote    String?
+  adminId      Int?
+  status       String   @default("pending")
+  createdAt    DateTime @default(now())
+  actionedAt   DateTime?
+
+  user       User    @relation(fields: [userId], references: [id])
+  session    Session @relation(fields: [sessionId], references: [id])
+  fromGameId GameId  @relation("FromGameId", fields: [fromGameIdId], references: [id])
+  toGameId   GameId  @relation("ToGameId", fields: [toGameIdId], references: [id])
+  admin      User?   @relation("TransferAdmin", fields: [adminId], references: [id])
+  activityLogs ActivityLog[]
+}
+
+// ─── PAYMENT ACCOUNTS ────────────────────────────────────────
+model PaymentAccount {
+  id            Int      @id @default(autoincrement())
+  currency      String
+  type          String
+  label         String
+  accountNumber String?
+  accountName   String?
+  walletAddress String?
+  notes         String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+}
+
+// ─── CONFIGS ─────────────────────────────────────────────────
+model Config {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+// ─── BOT MESSAGES ────────────────────────────────────────────
+model BotMessage {
+  id         Int      @id @default(autoincrement())
+  messageKey String
+  language   String
+  content    String
+  updatedAt  DateTime @updatedAt
+
+  @@unique([messageKey, language])
+}
+
+// ─── BANNERS ────────────────────────────────────────────────
+model Banner {
+  id        Int      @id @default(autoincrement())
+  title     String?
+  body      String?
+  imageUrl  String?
+  linkUrl   String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─── ACTIVITY LOGS ───────────────────────────────────────────
+model ActivityLog {
+  id          Int      @id @default(autoincrement())
+  sessionId   Int?
+  userId      Int?
+  adminId     Int?
+  gameIdId    Int?
+  entityType  String
+  entityId    Int
+  action      String
+  meta        Json?
+  createdAt   DateTime @default(now())
+
+  depositId       Int?
+  withdrawalId    Int?
+  recoveryId      Int?
+  newIdRequestId  Int?
+  supportTicketId Int?
+  chipTransferId  Int?
+
+  session       Session?       @relation(fields: [sessionId], references: [id])
+  user          User?          @relation("UserLogs", fields: [userId], references: [id])
+  admin         User?          @relation("AdminLogs", fields: [adminId], references: [id])
+  gameId        GameId?        @relation(fields: [gameIdId], references: [id])
+  deposit       Deposit?       @relation(fields: [depositId], references: [id])
+  withdrawal    Withdrawal?    @relation(fields: [withdrawalId], references: [id])
+  recovery      Recovery?      @relation(fields: [recoveryId], references: [id])
+  newIdRequest  NewIdRequest?  @relation(fields: [newIdRequestId], references: [id])
+  supportTicket SupportTicket? @relation(fields: [supportTicketId], references: [id])
+  chipTransfer  ChipTransfer?  @relation(fields: [chipTransferId], references: [id])
+}
