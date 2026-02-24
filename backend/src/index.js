@@ -18,6 +18,7 @@ const adminDashboardRouter = require('./routes/admin/dashboard')
 const notifyRouter = require('./routes/notify')
 const adminRequestsRouter = require('./routes/admin/requests')
 const adminUsersRouter = require('./routes/admin/users')
+const adminGameIdsRouter = require('./routes/admin/gameids')
 const bot = require('./bot/index')
 
 const app = express()
@@ -43,6 +44,7 @@ app.use('/api/admin/dashboard', telegramAuth, adminAuth, adminDashboardRouter)
 app.use('/api/admin/sessions', telegramAuth, adminAuth, adminDashboardRouter)
 app.use('/api/admin/requests', telegramAuth, adminAuth, adminRequestsRouter)
 app.use('/api/admin/users', telegramAuth, adminAuth, adminUsersRouter)
+app.use('/api/admin/gameids', telegramAuth, adminAuth, adminGameIdsRouter)
 
 
 app.get('/health', (req, res) => res.json({ ok: true }))
