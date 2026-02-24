@@ -226,7 +226,7 @@ function UserProfile({ user, onBack, onGameIdTap }) {
     setReqLoading(true);
     try {
       const r = await api.get(`/admin/users/${user.id}/requests`, {
-        params: { sessionId: sessionId !== "all" ? sessionId : undefined },
+        params: { sessionId: sessionId || undefined },
       });
       setRequests(r.data);
     } catch {
@@ -240,7 +240,7 @@ function UserProfile({ user, onBack, onGameIdTap }) {
     setTlLoading(true);
     try {
       const r = await api.get(`/admin/users/${user.id}/timeline`, {
-        params: { sessionId: sessionId !== "all" ? sessionId : undefined },
+        params: { sessionId: sessionId || undefined },
       });
       setTimeline(r.data);
     } catch {
