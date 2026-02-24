@@ -183,7 +183,7 @@ function UserProfile({ user, onBack, onGameIdTap }) {
   const [timeline, setTimeline] = useState(null);
   const [tlLoading, setTlLoading] = useState(false);
   const [sessions, setSessions] = useState([]);
-  const [sessionId, setSessionId] = useState("all");
+  const [sessionId, setSessionId] = useState(null);
   const [message, setMessage] = useState("");
   const [showMsg, setShowMsg] = useState(false);
   const [sending, setSending] = useState(false);
@@ -297,7 +297,8 @@ function UserProfile({ user, onBack, onGameIdTap }) {
       {/* Profile card — always shown */}
       <div
         style={{
-          background: "var(--tg-theme-section-bg-color)",
+          background: "var(--tg-theme-secondary-bg-color)",
+          border: "none",
           borderRadius: 16,
           padding: "18px 16px",
           marginBottom: 16,
@@ -312,14 +313,14 @@ function UserProfile({ user, onBack, onGameIdTap }) {
             height: 50,
             borderRadius: "50%",
             flexShrink: 0,
-            background: `${roleColor}20`,
-            border: `2px solid ${roleColor}50`,
+            background: "var(--tg-theme-secondary-bg-color)",
+            border: "none",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             fontSize: 19,
             fontWeight: 700,
-            color: roleColor,
+            color: "var(--tg-theme-text-color)",
           }}
         >
           {initials}
@@ -349,8 +350,8 @@ function UserProfile({ user, onBack, onGameIdTap }) {
                 fontSize: 10,
                 fontWeight: 700,
                 textTransform: "uppercase",
-                color: roleColor,
-                background: `${roleColor}18`,
+                color: "var(--tg-theme-text-color)",
+                background: "var(--tg-theme-secondary-bg-color)",
                 padding: "2px 7px",
                 borderRadius: 8,
               }}
@@ -436,71 +437,6 @@ function UserProfile({ user, onBack, onGameIdTap }) {
       {/* Content */}
       {!loading && !error && profile && (
         <>
-          {/* Send message */}
-          <button
-            className="btn btn-ghost"
-            onClick={() => setShowMsg((v) => !v)}
-            style={{ marginBottom: showMsg ? 8 : 14 }}
-          >
-            💬 Send Message via Bot
-          </button>
-
-          {showMsg && (
-            <div style={{ marginBottom: 14 }}>
-              <div
-                style={{
-                  background: "var(--tg-theme-section-bg-color)",
-                  borderRadius: 12,
-                  overflow: "hidden",
-                  marginBottom: 8,
-                }}
-              >
-                <textarea
-                  placeholder="Type your message…"
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  rows={3}
-                  style={{
-                    width: "100%",
-                    border: "none",
-                    outline: "none",
-                    background: "transparent",
-                    padding: "12px 16px",
-                    fontSize: 15,
-                    color: "var(--tg-theme-text-color)",
-                    fontFamily: "inherit",
-                    lineHeight: 1.5,
-                    resize: "none",
-                  }}
-                />
-              </div>
-              <button
-                className="btn btn-primary"
-                onClick={sendMessage}
-                disabled={sending || !message.trim()}
-              >
-                {sending ? "Sending…" : "Send"}
-              </button>
-            </div>
-          )}
-
-          {msgSuccess && (
-            <div
-              style={{
-                background: "rgba(52,199,89,.12)",
-                borderRadius: 10,
-                padding: "10px 14px",
-                marginBottom: 14,
-                display: "flex",
-                gap: 8,
-                alignItems: "center",
-              }}
-            >
-              <span>✅</span>
-              <p style={{ fontSize: 13, color: "#1a7a35" }}>Message sent!</p>
-            </div>
-          )}
-
           {/* Session filter */}
           {sessions.length > 0 && (
             <div
@@ -530,15 +466,15 @@ function UserProfile({ user, onBack, onGameIdTap }) {
               >
                 <Pill
                   label="All time"
-                  active={sessionId === "all"}
-                  onClick={() => setSessionId("all")}
+                  active={sessionId === null}
+                  onClick={() => setSessionId(null)}
                 />
                 {sessions.map((s) => (
                   <Pill
                     key={s.id}
                     label={s.name || `Session ${s.id}`}
-                    active={sessionId === String(s.id)}
-                    onClick={() => setSessionId(String(s.id))}
+                    active={sessionId === s.id}
+                    onClick={() => setSessionId(s.id)}
                   />
                 ))}
               </div>
@@ -555,10 +491,10 @@ function UserProfile({ user, onBack, onGameIdTap }) {
             }}
           >
             {[
-              { key: "summary", label: "📊 Summary" },
-              { key: "requests", label: "📋 Requests" },
-              { key: "gameids", label: "🎮 Game IDs" },
-              { key: "timeline", label: "🕐 Timeline" },
+              { key: "summary", label: "Summary" },
+              { key: "requests", label: "Requests" },
+              { key: "gameids", label: "Game IDs" },
+              { key: "timeline", label: "Timeline" },
             ].map((t) => (
               <button
                 key={t.key}
@@ -592,104 +528,206 @@ function UserProfile({ user, onBack, onGameIdTap }) {
           {/* Summary */}
           {activeTab === "summary" && (
             <>
-              <p className="section-label">Lifetime Stats</p>
+              {/* ───────────── Current Session ───────────── */}
+              {profile.stats.currentSession && (
+                <>
+                  <p className="section-label">Current Session</p>
+                  <div className="tg-section" style={{ marginBottom: 18 }}>
+                    {[
+                      {
+                        label: "Deposits",
+                        value: profile.stats.currentSession.deposits,
+                        note: profile.stats.currentSession.depositAmount
+                          ? `${Number(profile.stats.currentSession.depositAmount).toLocaleString()} approved`
+                          : null,
+                      },
+                      {
+                        label: "Withdrawals",
+                        value: profile.stats.currentSession.withdrawals,
+                        note: profile.stats.currentSession.withdrawalAmount
+                          ? `${Number(profile.stats.currentSession.withdrawalAmount).toLocaleString()} requested`
+                          : null,
+                      },
+                      {
+                        label: "Recoveries",
+                        value: profile.stats.currentSession.recoveries,
+                      },
+                      {
+                        label: "New IDs",
+                        value: profile.stats.currentSession.newIds,
+                      },
+                      {
+                        label: "Tickets",
+                        value: profile.stats.currentSession.tickets,
+                      },
+                    ].map((row) => (
+                      <div key={row.label} className="tg-row tg-row-static">
+                        <div className="tg-row-content">
+                          <p className="tg-row-title">{row.label}</p>
+                          {row.note && (
+                            <p className="tg-row-subtitle">{row.note}</p>
+                          )}
+                        </div>
+                        <p className="tg-row-right" style={{ fontWeight: 700 }}>
+                          {row.value ?? 0}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+
+              {/* ───────────── Lifetime ───────────── */}
+              <p className="section-label">Lifetime</p>
               <div className="tg-section" style={{ marginBottom: 18 }}>
                 {[
                   {
                     label: "Deposits",
-                    value: profile.stats.totalDeposits,
-                    note: profile.stats.totalDepositAmount
-                      ? `${Number(profile.stats.totalDepositAmount).toLocaleString()} approved`
+                    value: profile.stats.lifetime.deposits,
+                    note: profile.stats.lifetime.depositAmount
+                      ? `${Number(profile.stats.lifetime.depositAmount).toLocaleString()} approved`
                       : null,
                   },
                   {
                     label: "Withdrawals",
-                    value: profile.stats.totalWithdrawals,
-                    note: profile.stats.totalWithdrawalAmount
-                      ? `${Number(profile.stats.totalWithdrawalAmount).toLocaleString()} requested`
+                    value: profile.stats.lifetime.withdrawals,
+                    note: profile.stats.lifetime.withdrawalAmount
+                      ? `${Number(profile.stats.lifetime.withdrawalAmount).toLocaleString()} requested`
                       : null,
                   },
                   {
                     label: "Recoveries",
-                    value: profile.stats.totalRecoveries,
-                    note: null,
+                    value: profile.stats.lifetime.recoveries,
                   },
                   {
                     label: "New IDs",
-                    value: profile.stats.totalNewIds,
-                    note: null,
+                    value: profile.stats.lifetime.newIds,
                   },
                   {
                     label: "Tickets",
-                    value: profile.stats.totalTickets,
-                    note: null,
+                    value: profile.stats.lifetime.tickets,
                   },
                   {
                     label: "Game IDs",
                     value: profile.gameIds.length,
-                    note: null,
                   },
                 ].map((row) => (
                   <div key={row.label} className="tg-row tg-row-static">
                     <div className="tg-row-content">
-                      <p
-                        className="tg-row-title"
-                        style={{
-                          color: "var(--tg-theme-subtitle-text-color)",
-                          fontSize: 14,
-                        }}
-                      >
-                        {row.label}
-                      </p>
+                      <p className="tg-row-title">{row.label}</p>
                       {row.note && (
                         <p className="tg-row-subtitle">{row.note}</p>
                       )}
                     </div>
-                    <p
-                      className="tg-row-right"
-                      style={{ fontWeight: 700, fontSize: 18 }}
-                    >
+                    <p className="tg-row-right" style={{ fontWeight: 700 }}>
                       {row.value ?? 0}
                     </p>
                   </div>
                 ))}
               </div>
 
-              <p className="section-label">Account Info</p>
+              {/* ───────────── Account Info ───────────── */}
+              <p className="section-label">Account</p>
               <div className="tg-section" style={{ marginBottom: 18 }}>
                 {[
                   {
                     label: "Language",
-                    value: user.language === "dv" ? "Dhivehi 🇲🇻" : "English 🇬🇧",
+                    value: user.language === "dv" ? "Dhivehi" : "English",
                   },
                   {
                     label: "Broadcasts",
-                    value: user.broadcastOptIn ? "✅ Opted in" : "❌ Opted out",
+                    value: user.broadcastOptIn ? "Opted in" : "Opted out",
                   },
                   {
                     label: "TnC Accepted",
-                    value: user.tncAccepted ? "✅ Yes" : "❌ No",
+                    value: user.tncAccepted ? "Yes" : "No",
                   },
                 ].map((row) => (
                   <div key={row.label} className="tg-row tg-row-static">
-                    <p
-                      className="tg-row-title"
-                      style={{
-                        color: "var(--tg-theme-subtitle-text-color)",
-                        fontSize: 14,
-                      }}
-                    >
-                      {row.label}
-                    </p>
-                    <p
-                      className="tg-row-right"
-                      style={{ fontSize: 14, fontWeight: 500 }}
-                    >
-                      {row.value}
-                    </p>
+                    <p className="tg-row-title">{row.label}</p>
+                    <p className="tg-row-right">{row.value}</p>
                   </div>
                 ))}
+                {/* Send Message row */}
+                <div
+                  className="tg-row"
+                  onClick={() => setShowMsg((v) => !v)}
+                  style={{ cursor: "pointer" }}
+                >
+                  <p className="tg-row-title">Send Message</p>
+                  <svg
+                    className="tg-chevron"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                  >
+                    <path
+                      d="m6 4 4 4-4 4"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </div>
               </div>
+              {showMsg && (
+                <div style={{ marginBottom: 14 }}>
+                  <div
+                    style={{
+                      background: "var(--tg-theme-section-bg-color)",
+                      borderRadius: 12,
+                      overflow: "hidden",
+                      marginBottom: 8,
+                    }}
+                  >
+                    <textarea
+                      placeholder="Type your message…"
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      rows={3}
+                      style={{
+                        width: "100%",
+                        border: "none",
+                        outline: "none",
+                        background: "transparent",
+                        padding: "12px 16px",
+                        fontSize: 15,
+                        color: "var(--tg-theme-text-color)",
+                        fontFamily: "inherit",
+                        lineHeight: 1.5,
+                        resize: "none",
+                      }}
+                    />
+                  </div>
+                  <button
+                    className="btn btn-primary"
+                    onClick={sendMessage}
+                    disabled={sending || !message.trim()}
+                  >
+                    {sending ? "Sending…" : "Send"}
+                  </button>
+                </div>
+              )}
+              {msgSuccess && (
+                <div
+                  style={{
+                    background: "rgba(52,199,89,.12)",
+                    borderRadius: 10,
+                    padding: "10px 14px",
+                    marginBottom: 14,
+                    display: "flex",
+                    gap: 8,
+                    alignItems: "center",
+                  }}
+                >
+                  <span>✅</span>
+                  <p style={{ fontSize: 13, color: "#1a7a35" }}>
+                    Message sent!
+                  </p>
+                </div>
+              )}
             </>
           )}
 

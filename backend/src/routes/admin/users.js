@@ -42,16 +42,45 @@ router.get('/', async (req, res) => {
 // GET /api/admin/users/:id  — full profile with stats + gameIds
 router.get('/:id', async (req, res) => {
   const userId = parseInt(req.params.id)
+  // Find currently active session (if any)
+  const activeSession = await prisma.session.findFirst({
+    where: { status: 'open' },
+    select: { id: true }
+  })
   try {
-    const [user, gameIds, depStats, withStats, recCount, newIdCount, ticketCount] = await Promise.all([
+    const [
+      user,
+      gameIds,
+
+      // Lifetime
+      depLifetime,
+      withLifetime,
+      recLifetime,
+      newIdLifetime,
+      ticketLifetime,
+
+      // Current session (if exists)
+      depSession,
+      withSession,
+      recSession,
+      newIdSession,
+      ticketSession
+    ] = await Promise.all([
       prisma.user.findUnique({ where: { id: userId }, select: userSelect }),
 
       prisma.gameId.findMany({
         where: { userGameIds: { some: { userId } } },
         orderBy: { lastInteractedAt: 'desc' },
-        select: { id: true, gameId: true, createdAt: true, lastInteractedUserId: true, lastInteractedAt: true },
+        select: {
+          id: true,
+          gameId: true,
+          createdAt: true,
+          lastInteractedUserId: true,
+          lastInteractedAt: true
+        },
       }),
 
+      // ───────────── Lifetime ─────────────
       prisma.deposit.aggregate({
         where: { userId },
         _count: { id: true },
@@ -67,6 +96,41 @@ router.get('/:id', async (req, res) => {
       prisma.recovery.count({ where: { userId } }),
       prisma.newIdRequest.count({ where: { userId } }),
       prisma.supportTicket.count({ where: { userId } }),
+
+      // ───────────── Current Session ─────────────
+      activeSession
+        ? prisma.deposit.aggregate({
+          where: { userId, sessionId: activeSession.id },
+          _count: { id: true },
+          _sum: { approvedAmount: true },
+        })
+        : null,
+
+      activeSession
+        ? prisma.withdrawal.aggregate({
+          where: { userId, sessionId: activeSession.id },
+          _count: { id: true },
+          _sum: { requestedAmount: true },
+        })
+        : null,
+
+      activeSession
+        ? prisma.recovery.count({
+          where: { userId, sessionId: activeSession.id }
+        })
+        : null,
+
+      activeSession
+        ? prisma.newIdRequest.count({
+          where: { userId, sessionId: activeSession.id }
+        })
+        : null,
+
+      activeSession
+        ? prisma.supportTicket.count({
+          where: { userId, sessionId: activeSession.id }
+        })
+        : null,
     ])
 
     if (!user) return res.status(404).json({ error: 'User not found' })
@@ -75,13 +139,27 @@ router.get('/:id', async (req, res) => {
       user,
       gameIds,
       stats: {
-        totalDeposits: depStats._count.id,
-        totalDepositAmount: depStats._sum.approvedAmount,
-        totalWithdrawals: withStats._count.id,
-        totalWithdrawalAmount: withStats._sum.requestedAmount,
-        totalRecoveries: recCount,
-        totalNewIds: newIdCount,
-        totalTickets: ticketCount,
+        lifetime: {
+          deposits: depLifetime._count.id,
+          depositAmount: depLifetime._sum.approvedAmount,
+          withdrawals: withLifetime._count.id,
+          withdrawalAmount: withLifetime._sum.requestedAmount,
+          recoveries: recLifetime,
+          newIds: newIdLifetime,
+          tickets: ticketLifetime,
+        },
+        currentSession: activeSession
+          ? {
+            sessionId: activeSession.id,
+            deposits: depSession?._count.id || 0,
+            depositAmount: depSession?._sum.approvedAmount || 0,
+            withdrawals: withSession?._count.id || 0,
+            withdrawalAmount: withSession?._sum.requestedAmount || 0,
+            recoveries: recSession || 0,
+            newIds: newIdSession || 0,
+            tickets: ticketSession || 0,
+          }
+          : null
       }
     }))
   } catch (err) {
